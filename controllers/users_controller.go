@@ -22,5 +22,10 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	if err := u.SignIn(p.Email, p.Password); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"token": u.RememberToken})
 }
