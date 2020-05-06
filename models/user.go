@@ -1,6 +1,10 @@
 package models
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"log"
 	"time"
 
 	"github.com/jo-tbhac/kanban-api/db"
@@ -22,6 +26,11 @@ type UserParams struct {
 	Email                string `json:"email" binding:"required,email"`
 	Password             string `json:"password" binding:"required,min=8,eqfield=PasswordConfirmation"`
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
+}
+
+type SessionParams struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func init() {
@@ -47,6 +56,43 @@ func (u *User) Create(p UserParams) error {
 	}
 
 	return nil
+}
+
+func (u *User) SignIn(email, password string) error {
+	db := db.Get()
+
+	db.Where("email = ?", email).First(&u)
+
+	if u.ID == 0 /* if user does not exist */ {
+		return errors.New("user does not exist")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordDigest), []byte(password)); err != nil {
+		return errors.New("invalid password")
+	}
+
+	t, err := newSessionToken()
+
+	if err != nil {
+		log.Printf("failed create token. %v", err)
+		return errors.New("internal server error")
+	}
+
+	u.RememberToken = t
+
+	db.Save(&u)
+
+	return nil
+}
+
+func newSessionToken() (string, error) {
+	b := make([]byte, 32)
+
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+
+	return base64.URLEncoding.EncodeToString(b), nil
 }
 
 func encryptPassword(password string) (digest string, err error) {
