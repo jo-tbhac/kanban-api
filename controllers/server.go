@@ -12,6 +12,7 @@ func StartServer() {
 	r := gin.Default()
 
 	r.POST("/users", CreateUser)
+	r.POST("/sessions", CreateSession)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
