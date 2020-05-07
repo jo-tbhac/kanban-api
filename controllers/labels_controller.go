@@ -22,3 +22,13 @@ func CreateLabel(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
+
+func IndexLabel(c *gin.Context) {
+	var l []models.Label
+
+	if err := models.IndexLabel(c, &l); err != nil {
+		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"labels": l})
+}
