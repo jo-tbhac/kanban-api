@@ -35,5 +35,7 @@ func StartServer() {
 	authorized.POST("/boards", CreateBoard)
 	authorized.GET("/boards", IndexBoard)
 
+	authorized.POST("/labels", CreateLabel)
+
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
