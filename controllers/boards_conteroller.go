@@ -24,3 +24,11 @@ func CreateBoard(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"board": b})
 }
+
+func IndexBoard(c *gin.Context) {
+	var b []models.Board
+	u := c.Keys["user"].(models.User)
+
+	models.IndexBoard(&b, &u)
+	c.JSON(http.StatusOK, gin.H{"boards": b})
+}
