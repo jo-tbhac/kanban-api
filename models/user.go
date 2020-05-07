@@ -19,6 +19,7 @@ type User struct {
 	Email          string    `json:"email"`
 	PasswordDigest string    `json:"password_digest"`
 	RememberToken  string    `json:"remember_token"`
+	Boards         []Board   `json:"boards" gorm:"foreignkey:UserID"`
 }
 
 type UserParams struct {
@@ -83,6 +84,13 @@ func (u *User) SignIn(email, password string) error {
 	db.Save(&u)
 
 	return nil
+}
+
+func (u *User) IsSignedIn(token string) bool {
+	db := db.Get()
+	db.Where("remember_token = ?", token).First(&u)
+
+	return u.ID != 0 /* user does not exist */
 }
 
 func newSessionToken() (string, error) {
