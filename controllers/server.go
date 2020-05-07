@@ -27,8 +27,12 @@ func authenticate() gin.HandlerFunc {
 func StartServer() {
 	r := gin.Default()
 
+	authorized := r.Group("/", authenticate())
+
 	r.POST("/users", CreateUser)
 	r.POST("/sessions", CreateSession)
+
+	authorized.POST("/boards", CreateBoard)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
