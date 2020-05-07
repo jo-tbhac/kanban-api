@@ -33,6 +33,7 @@ func StartServer() {
 	r.POST("/sessions", CreateSession)
 
 	authorized.POST("/boards", CreateBoard)
+	authorized.GET("/boards", IndexBoard)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

@@ -1,14 +1,18 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
+
 	"github.com/jo-tbhac/kanban-api/db"
 )
 
 type Board struct {
-	gorm.Model
-	Name   string `json:"name" binding:"required,max=50"`
-	UserID uint   `json:"user_id"`
+	ID        uint       `json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+	Name      string     `json:"name" binding:"required,max=50"`
+	UserID    uint       `json:"user_id"`
 }
 
 func init() {
@@ -25,4 +29,10 @@ func (b *Board) Create() error {
 	}
 
 	return nil
+}
+
+func IndexBoard(b *[]Board, u *User) {
+	db := db.Get()
+
+	db.Model(u).Related(b)
 }
