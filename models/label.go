@@ -32,7 +32,7 @@ func (l *Label) Create() error {
 	return nil
 }
 
-func IndexLabel(l *[]Label, bid, uid uint) error {
+func GetAllLabel(l *[]Label, bid, uid uint) error {
 	db := db.Get()
 
 	db.Table("labels").

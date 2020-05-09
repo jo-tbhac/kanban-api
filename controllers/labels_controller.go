@@ -38,7 +38,7 @@ func IndexLabel(c *gin.Context) {
 
 	uid := CurrentUser(c).ID
 
-	if err := models.IndexLabel(&l, uint(bid), uid); err != nil {
+	if err := models.GetAllLabel(&l, uint(bid), uid); err != nil {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 	}
 
