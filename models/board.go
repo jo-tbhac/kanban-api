@@ -46,7 +46,7 @@ func (b *Board) Get(uid uint) error {
 	return nil
 }
 
-func IndexBoard(b *[]Board, u *User) {
+func GetAllBoard(b *[]Board, u *User) {
 	db := db.Get()
 
 	db.Model(u).Related(b)

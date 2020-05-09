@@ -31,7 +31,7 @@ func IndexBoard(c *gin.Context) {
 	var b []models.Board
 	u := CurrentUser(c)
 
-	models.IndexBoard(&b, &u)
+	models.GetAllBoard(&b, &u)
 	c.JSON(http.StatusOK, gin.H{"boards": b})
 }
 
