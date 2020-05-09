@@ -17,6 +17,12 @@ func CreateLabel(c *gin.Context) {
 		return
 	}
 
+	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
+		log.Println("does not match uid and board.user_id")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
 	if err := l.Create(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

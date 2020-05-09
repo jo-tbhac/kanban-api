@@ -31,11 +31,21 @@ func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func JoinBoardTableTo(name string) func(db *gorm.DB) *gorm.DB {
+func JoinBoardTableTo(tn string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		query := fmt.Sprintf("left join boards on boards.id = %v.board_id", name)
-		return db.Table("labels").Joins(query)
+		query := fmt.Sprintf("left join boards on boards.id = %s.board_id", tn)
+		return db.Table(tn).Joins(query)
 	}
+}
+
+func RelatedBoardOwnerIsValid(bid, uid uint) bool {
+	db := db.Get()
+
+	var b Board
+
+	db.First(&b, bid)
+
+	return b.UserID == uid
 }
 
 func (b *Board) Create() error {
