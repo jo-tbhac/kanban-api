@@ -34,7 +34,6 @@ func StartServer() {
 
 	authorized.POST("/boards", CreateBoard)
 	authorized.GET("/boards", IndexBoard)
-	authorized.GET("/board", ShowBoard)
 
 	authorized.POST("/labels", CreateLabel)
 	authorized.GET("/labels", IndexLabel)

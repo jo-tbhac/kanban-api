@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -33,25 +31,4 @@ func IndexBoard(c *gin.Context) {
 
 	models.IndexBoard(&b, &u)
 	c.JSON(http.StatusOK, gin.H{"boards": b})
-}
-
-func ShowBoard(c *gin.Context) {
-	bid, err := strconv.Atoi(c.Query("board_id"))
-
-	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
-		return
-	}
-
-	b := models.Board{ID: uint(bid)}
-
-	uid := c.Keys["user"].(models.User).ID
-
-	if err := b.Get(uid); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"board": b})
 }
