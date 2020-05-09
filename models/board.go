@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+	"log"
 	"time"
 
 	"github.com/jo-tbhac/kanban-api/db"
@@ -26,6 +28,19 @@ func (b *Board) Create() error {
 
 	if err := db.Create(&b).Error; err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (b *Board) Get(uid uint) error {
+	db := db.Get()
+
+	db.Scopes(BoardOwnerValidation(uid)).Where("id = ?", b.ID).First(b)
+
+	if b.UserID == 0 /* user does not exists */ {
+		log.Println("failed get board. does not match uid and board.user_id.")
+		return errors.New("invalid parameters")
 	}
 
 	return nil

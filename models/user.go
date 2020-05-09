@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,6 +39,12 @@ func init() {
 	db := db.Get()
 	db.AutoMigrate(&User{})
 	db.Model(&User{}).AddUniqueIndex("idx_users_email", "email")
+}
+
+func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("boards.user_id = ?", uid)
+	}
 }
 
 func (u *User) Create(p UserParams) error {
