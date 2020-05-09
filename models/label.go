@@ -35,9 +35,8 @@ func (l *Label) Create() error {
 func GetAllLabel(l *[]Label, bid, uid uint) error {
 	db := db.Get()
 
-	db.Table("labels").
-		Joins("left join boards on boards.id = labels.board_id").
-		Where("boards.user_id = ? and labels.board_id = ?", uid, bid).Scan(l)
+	db.Scopes(JoinBoardTableTo("labels"), BoardOwnerValidation(uid)).
+		Where("labels.board_id = ?", bid).Scan(l)
 
 	return nil
 }

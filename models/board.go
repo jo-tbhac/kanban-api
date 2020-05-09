@@ -2,9 +2,11 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 )
 
@@ -21,6 +23,19 @@ func init() {
 	db := db.Get()
 	db.AutoMigrate(&Board{})
 	db.Model(&Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+}
+
+func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("boards.user_id = ?", uid)
+	}
+}
+
+func JoinBoardTableTo(name string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		query := fmt.Sprintf("left join boards on boards.id = %v.board_id", name)
+		return db.Table("labels").Joins(query)
+	}
 }
 
 func (b *Board) Create() error {
