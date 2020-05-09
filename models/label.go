@@ -1,11 +1,8 @@
 package models
 
 import (
-	"errors"
-	"log"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/db"
 )
 
@@ -35,17 +32,8 @@ func (l *Label) Create() error {
 	return nil
 }
 
-func IndexLabel(c *gin.Context, l *[]Label) error {
+func IndexLabel(l *[]Label, bid, uid uint) error {
 	db := db.Get()
-
-	bid := c.Query("board_id")
-
-	uid := c.Keys["user"].(User).ID
-
-	if bid == "" {
-		log.Println("invalid query parameter `board_id`")
-		return errors.New("invalid parameter")
-	}
 
 	db.Table("labels").
 		Joins("left join boards on boards.id = labels.board_id").

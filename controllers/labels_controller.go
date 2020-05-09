@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -26,7 +28,17 @@ func CreateLabel(c *gin.Context) {
 func IndexLabel(c *gin.Context) {
 	var l []models.Label
 
-	if err := models.IndexLabel(c, &l); err != nil {
+	bid, err := strconv.Atoi(c.Query("board_id"))
+
+	if err != nil {
+		log.Println("invalid query parameter `board_id`")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameter"})
+		return
+	}
+
+	uid := CurrentUser(c).ID
+
+	if err := models.IndexLabel(&l, uint(bid), uid); err != nil {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 	}
 
