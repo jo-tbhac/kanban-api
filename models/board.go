@@ -26,7 +26,7 @@ func init() {
 func (b *Board) Create() error {
 	db := db.Get()
 
-	if err := db.Create(&b).Error; err != nil {
+	if err := db.Create(b).Error; err != nil {
 		return err
 	}
 

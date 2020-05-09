@@ -61,7 +61,7 @@ func (u *User) Create(p UserParams) error {
 	u.Name = p.Name
 	u.Email = p.Email
 
-	if err := db.Create(&u).Error; err != nil {
+	if err := db.Create(u).Error; err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (u *User) Create(p UserParams) error {
 func (u *User) SignIn(email, password string) error {
 	db := db.Get()
 
-	db.Where("email = ?", email).First(&u)
+	db.Where("email = ?", email).First(u)
 
 	if u.ID == UserDoesNotExist {
 		return errors.New("user does not exist")
@@ -90,14 +90,14 @@ func (u *User) SignIn(email, password string) error {
 
 	u.RememberToken = t
 
-	db.Save(&u)
+	db.Save(u)
 
 	return nil
 }
 
 func (u *User) IsSignedIn(token string) bool {
 	db := db.Get()
-	db.Where("remember_token = ?", token).First(&u)
+	db.Where("remember_token = ?", token).First(u)
 
 	return u.ID != UserDoesNotExist
 }

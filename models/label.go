@@ -25,7 +25,7 @@ func init() {
 func (l *Label) Create() error {
 	db := db.Get()
 
-	if err := db.Create(&l).Error; err != nil {
+	if err := db.Create(l).Error; err != nil {
 		return err
 	}
 
