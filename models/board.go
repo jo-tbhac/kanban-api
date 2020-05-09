@@ -2,9 +2,11 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 )
 
@@ -23,10 +25,33 @@ func init() {
 	db.Model(&Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 }
 
+func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("boards.user_id = ?", uid)
+	}
+}
+
+func JoinBoardTableTo(tn string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		query := fmt.Sprintf("left join boards on boards.id = %s.board_id", tn)
+		return db.Table(tn).Joins(query)
+	}
+}
+
+func RelatedBoardOwnerIsValid(bid, uid uint) bool {
+	db := db.Get()
+
+	var b Board
+
+	db.First(&b, bid)
+
+	return b.UserID == uid
+}
+
 func (b *Board) Create() error {
 	db := db.Get()
 
-	if err := db.Create(&b).Error; err != nil {
+	if err := db.Create(b).Error; err != nil {
 		return err
 	}
 
@@ -38,7 +63,7 @@ func (b *Board) Get(uid uint) error {
 
 	db.Scopes(BoardOwnerValidation(uid)).Where("id = ?", b.ID).First(b)
 
-	if b.UserID == 0 /* user does not exists */ {
+	if b.UserID == UserDoesNotExist {
 		log.Println("failed get board. does not match uid and board.user_id.")
 		return errors.New("invalid parameters")
 	}
@@ -46,7 +71,7 @@ func (b *Board) Get(uid uint) error {
 	return nil
 }
 
-func IndexBoard(b *[]Board, u *User) {
+func GetAllBoard(b *[]Board, u *User) {
 	db := db.Get()
 
 	db.Model(u).Related(b)

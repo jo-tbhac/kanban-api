@@ -7,10 +7,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const UserDoesNotExist = 0
 
 type User struct {
 	ID             uint      `json:"id"`
@@ -41,12 +42,6 @@ func init() {
 	db.Model(&User{}).AddUniqueIndex("idx_users_email", "email")
 }
 
-func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("boards.user_id = ?", uid)
-	}
-}
-
 func (u *User) Create(p UserParams) error {
 	db := db.Get()
 
@@ -59,7 +54,7 @@ func (u *User) Create(p UserParams) error {
 	u.Name = p.Name
 	u.Email = p.Email
 
-	if err := db.Create(&u).Error; err != nil {
+	if err := db.Create(u).Error; err != nil {
 		return err
 	}
 
@@ -69,9 +64,9 @@ func (u *User) Create(p UserParams) error {
 func (u *User) SignIn(email, password string) error {
 	db := db.Get()
 
-	db.Where("email = ?", email).First(&u)
+	db.Where("email = ?", email).First(u)
 
-	if u.ID == 0 /* if user does not exist */ {
+	if u.ID == UserDoesNotExist {
 		return errors.New("user does not exist")
 	}
 
@@ -88,16 +83,16 @@ func (u *User) SignIn(email, password string) error {
 
 	u.RememberToken = t
 
-	db.Save(&u)
+	db.Save(u)
 
 	return nil
 }
 
 func (u *User) IsSignedIn(token string) bool {
 	db := db.Get()
-	db.Where("remember_token = ?", token).First(&u)
+	db.Where("remember_token = ?", token).First(u)
 
-	return u.ID != 0 /* user does not exist */
+	return u.ID != UserDoesNotExist
 }
 
 func newSessionToken() (string, error) {
