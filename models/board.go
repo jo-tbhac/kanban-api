@@ -38,7 +38,7 @@ func (b *Board) Get(uid uint) error {
 
 	db.Scopes(BoardOwnerValidation(uid)).Where("id = ?", b.ID).First(b)
 
-	if b.UserID == 0 /* user does not exists */ {
+	if b.UserID == UserDoesNotExist {
 		log.Println("failed get board. does not match uid and board.user_id.")
 		return errors.New("invalid parameters")
 	}

@@ -12,6 +12,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const UserDoesNotExist = 0
+
 type User struct {
 	ID             uint      `json:"id"`
 	CreatedAt      time.Time `json:"created_at"`
@@ -71,7 +73,7 @@ func (u *User) SignIn(email, password string) error {
 
 	db.Where("email = ?", email).First(&u)
 
-	if u.ID == 0 /* if user does not exist */ {
+	if u.ID == UserDoesNotExist {
 		return errors.New("user does not exist")
 	}
 
@@ -97,7 +99,7 @@ func (u *User) IsSignedIn(token string) bool {
 	db := db.Get()
 	db.Where("remember_token = ?", token).First(&u)
 
-	return u.ID != 0 /* user does not exist */
+	return u.ID != UserDoesNotExist
 }
 
 func newSessionToken() (string, error) {
