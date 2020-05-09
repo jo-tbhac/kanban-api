@@ -17,7 +17,7 @@ func CreateBoard(c *gin.Context) {
 		return
 	}
 
-	b.UserID = c.Keys["user"].(models.User).ID
+	b.UserID = CurrentUser(c).ID
 
 	if err := b.Create(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -29,7 +29,7 @@ func CreateBoard(c *gin.Context) {
 
 func IndexBoard(c *gin.Context) {
 	var b []models.Board
-	u := c.Keys["user"].(models.User)
+	u := CurrentUser(c)
 
 	models.IndexBoard(&b, &u)
 	c.JSON(http.StatusOK, gin.H{"boards": b})
@@ -46,7 +46,7 @@ func ShowBoard(c *gin.Context) {
 
 	b := models.Board{ID: uint(bid)}
 
-	uid := c.Keys["user"].(models.User).ID
+	uid := CurrentUser(c).ID
 
 	if err := b.Get(uid); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
