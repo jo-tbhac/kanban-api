@@ -27,6 +27,28 @@ func CreateBoard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"board": b})
 }
 
+func UpdateBoard(c *gin.Context) {
+	var b models.Board
+
+	if err := c.BindJSON(&b); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !models.RelatedBoardOwnerIsValid(b.ID, CurrentUser(c).ID) {
+		log.Println("does not match uid and board.user_id")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	if err := b.Update(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"board": b})
+}
+
 func IndexBoard(c *gin.Context) {
 	var b []models.Board
 	u := CurrentUser(c)

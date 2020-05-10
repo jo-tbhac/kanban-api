@@ -37,6 +37,7 @@ func StartServer() {
 	r.POST("/sessions", CreateSession)
 
 	authorized.POST("/boards", CreateBoard)
+	authorized.PATCH("/boards", UpdateBoard)
 	authorized.GET("/boards", IndexBoard)
 	authorized.GET("/board", ShowBoard)
 
