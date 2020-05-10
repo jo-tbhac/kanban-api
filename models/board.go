@@ -58,6 +58,16 @@ func (b *Board) Create() error {
 	return nil
 }
 
+func (b *Board) Update() error {
+	db := db.Get()
+
+	if err := db.Omit("user_id").Save(b).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (b *Board) Get(uid uint) error {
 	db := db.Get()
 
