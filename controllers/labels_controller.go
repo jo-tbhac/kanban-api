@@ -31,6 +31,30 @@ func CreateLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
+func UpdateLabel(c *gin.Context) {
+	var l models.Label
+
+	if err := c.BindJSON(&l); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	l.GetBoardID()
+
+	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
+		log.Println("does not match uid and board.user_id")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	if err := l.Update(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"label": l})
+}
+
 func IndexLabel(c *gin.Context) {
 	var l []models.Label
 
