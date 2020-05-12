@@ -77,3 +77,29 @@ func ShowBoard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"board": b})
 }
+
+func DeleteBoard(c *gin.Context) {
+	bid, err := strconv.Atoi(c.Query("board_id"))
+
+	if err != nil {
+		log.Printf("failed cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	b := models.Board{ID: uint(bid)}
+
+	if !models.RelatedBoardOwnerIsValid(b.ID, CurrentUser(c).ID) {
+		log.Println("does not match uid and board.user_id")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	if err := b.Delete(); err != nil {
+		log.Printf("failed delete a board: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed delete a board"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

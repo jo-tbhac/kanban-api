@@ -81,6 +81,16 @@ func (b *Board) Get(uid uint) error {
 	return nil
 }
 
+func (b *Board) Delete() error {
+	db := db.Get()
+
+	if err := db.Delete(b).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetAllBoard(b *[]Board, u *User) {
 	db := db.Get()
 
