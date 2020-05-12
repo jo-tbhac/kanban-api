@@ -74,3 +74,31 @@ func IndexLabel(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"labels": l})
 }
+
+func DeleteLabel(c *gin.Context) {
+	lid, err := strconv.Atoi(c.Query("label_id"))
+
+	if err != nil {
+		log.Printf("failed cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	l := models.Label{ID: uint(lid)}
+
+	l.GetBoardID()
+
+	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
+		log.Println("does not match uid and board.user_id")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
+
+	if err := l.Delete(); err != nil {
+		log.Printf("failed delete a label: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed delete a label"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

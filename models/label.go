@@ -48,11 +48,21 @@ func (l *Label) Update() error {
 	return nil
 }
 
+func (l *Label) Delete() error {
+	db := db.Get()
+
+	if err := db.Delete(l).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetAllLabel(l *[]Label, bid, uid uint) error {
 	db := db.Get()
 
 	db.Scopes(JoinBoardTableTo("labels"), BoardOwnerValidation(uid)).
-		Where("labels.board_id = ?", bid).Scan(l)
+		Where("labels.board_id = ? AND labels.deleted_at is null", bid).Scan(l)
 
 	return nil
 }

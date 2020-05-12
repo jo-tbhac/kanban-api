@@ -45,6 +45,7 @@ func StartServer() {
 	authorized.POST("/labels", CreateLabel)
 	authorized.PATCH("/labels", UpdateLabel)
 	authorized.GET("/labels", IndexLabel)
+	authorized.DELETE("/label", DeleteLabel)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
