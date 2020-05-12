@@ -40,6 +40,7 @@ func StartServer() {
 	authorized.PATCH("/boards", UpdateBoard)
 	authorized.GET("/boards", IndexBoard)
 	authorized.GET("/board", ShowBoard)
+	authorized.DELETE("/board", DeleteBoard)
 
 	authorized.POST("/labels", CreateLabel)
 	authorized.PATCH("/labels", UpdateLabel)
