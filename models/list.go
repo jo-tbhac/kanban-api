@@ -46,3 +46,13 @@ func (l *List) Update() error {
 
 	return nil
 }
+
+func (l *List) Delete() error {
+	db := db.Get()
+
+	if err := db.Delete(l).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
