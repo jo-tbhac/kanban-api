@@ -17,6 +17,7 @@ type Board struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 	Name      string     `json:"name" binding:"required,max=50"`
 	UserID    uint       `json:"user_id"`
+	Lists     []List     `json:"lists"`
 }
 
 func init() {
@@ -94,5 +95,5 @@ func (b *Board) Delete() error {
 func GetAllBoard(b *[]Board, u *User) {
 	db := db.Get()
 
-	db.Model(u).Related(b)
+	db.Preload("Lists").Model(u).Related(b)
 }
