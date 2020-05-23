@@ -51,5 +51,7 @@ func StartServer() {
 	authorized.PATCH("/lists", UpdateList)
 	authorized.DELETE("/list", DeleteList)
 
+	authorized.POST("/cards", CreateCard)
+
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
