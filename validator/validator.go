@@ -38,6 +38,12 @@ func ValidationMessages(err error) []ValidationError {
 		case "required":
 			t := fmt.Sprintf("%s must exist", e.Field())
 			validationErrors = append(validationErrors, ValidationError{t})
+		case "hexcolor":
+			t := fmt.Sprintf("%s must be hexcolor", e.Field())
+			validationErrors = append(validationErrors, ValidationError{t})
+		case "max":
+			t := fmt.Sprintf("%s less than %s", e.Field(), e.Param())
+			validationErrors = append(validationErrors, ValidationError{t})
 		}
 	}
 
