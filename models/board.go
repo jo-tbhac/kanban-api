@@ -48,6 +48,16 @@ func RelatedBoardOwnerIsValid(bid, uid uint) bool {
 	return b.UserID == uid
 }
 
+func ValidateUID(id, uid uint) bool {
+	db := db.Get()
+
+	var b Board
+
+	db.Select("user_id").First(&b, id)
+
+	return b.UserID == uid
+}
+
 func (b *Board) BeforeSave() error {
 	return validator.Validate(b)
 }

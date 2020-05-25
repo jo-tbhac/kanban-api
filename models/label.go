@@ -1,9 +1,11 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"github.com/jo-tbhac/kanban-api/db"
+	"github.com/jo-tbhac/kanban-api/validator"
 )
 
 type Label struct {
@@ -11,8 +13,8 @@ type Label struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
-	Name      string     `json:"name" binding:"required,max=50"`
-	Color     string     `json:"color" binding:"required,max=7"`
+	Name      string     `json:"name" validate:"required,max=50"`
+	Color     string     `json:"color" validate:"required,hexcolor"`
 	BoardID   uint       `json:"board_id"`
 }
 
@@ -22,47 +24,54 @@ func init() {
 	db.Model(&Label{}).AddForeignKey("board_id", "boards(id)", "RESTRICT", "RESTRICT")
 }
 
-func (l *Label) GetBoardID() {
-	db := db.Get()
-
-	db.Select("board_id").First(l, l.ID)
+func (l *Label) BeforeSave() error {
+	return validator.Validate(l)
 }
 
-func (l *Label) Create() error {
+func (l *Label) Find(id, uid uint) {
+	db := db.Get()
+
+	db.Joins("Join boards on boards.id = labels.board_id").
+		Where("boards.user_id = ?", uid).
+		First(l, id)
+}
+
+func (l *Label) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(l).Error; err != nil {
-		return err
+		return validator.ValidationMessages(err)
 	}
 
 	return nil
 }
 
-func (l *Label) Update() error {
+func (l *Label) Update() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Save(l).Error; err != nil {
-		return err
+		return validator.ValidationMessages(err)
 	}
 
 	return nil
 }
 
-func (l *Label) Delete() error {
+func (l *Label) Delete() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Delete(l).Error; err != nil {
-		return err
+		log.Printf("fail to delete label: %v", err)
+		return validator.MakeErrors("invalid request")
 	}
 
 	return nil
 }
 
-func GetAllLabel(l *[]Label, bid, uid uint) error {
+func GetAllLabel(l *[]Label, bid, uid uint) {
 	db := db.Get()
 
-	db.Scopes(JoinBoardTableTo("labels"), BoardOwnerValidation(uid)).
-		Where("labels.board_id = ? AND labels.deleted_at is null", bid).Scan(l)
-
-	return nil
+	db.Joins("Join boards on boards.id = labels.board_id").
+		Where("boards.user_id = ?", uid).
+		Where("labels.board_id = ?", bid).
+		Find(l)
 }
