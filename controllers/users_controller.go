@@ -19,7 +19,7 @@ func CreateUser(c *gin.Context) {
 	var p UserParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.ValidationMessages(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
 		return
 	}
 

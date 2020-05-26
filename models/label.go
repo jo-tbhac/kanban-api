@@ -41,7 +41,7 @@ func (l *Label) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(l).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -51,7 +51,7 @@ func (l *Label) Update() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Save(l).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil

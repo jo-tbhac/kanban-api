@@ -35,7 +35,7 @@ func Validate(s interface{}) error {
 	return validate.Struct(s)
 }
 
-func ValidationMessages(err error) []ValidationError {
+func FormattedValidationError(err error) []ValidationError {
 	var validationErrors []ValidationError
 
 	for _, e := range err.(validator.ValidationErrors) {

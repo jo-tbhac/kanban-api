@@ -53,7 +53,7 @@ func (c *Card) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(c).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -63,7 +63,7 @@ func (c *Card) Update() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Save(c).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
