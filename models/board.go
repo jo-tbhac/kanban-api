@@ -68,7 +68,7 @@ func (b *Board) Delete() []validator.ValidationError {
 	db := db.Get()
 
 	if r := db.Where("user_id = ?", b.UserID).Delete(b).RowsAffected; r == 0 {
-		return validator.MakeErrors("invalid request")
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil

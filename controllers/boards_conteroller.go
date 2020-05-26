@@ -19,7 +19,7 @@ func CreateBoard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
@@ -41,7 +41,7 @@ func UpdateBoard(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
 		return
 	}
 
@@ -49,7 +49,7 @@ func UpdateBoard(c *gin.Context) {
 
 	if b.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
@@ -57,7 +57,7 @@ func UpdateBoard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
@@ -84,7 +84,7 @@ func ShowBoard(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
 		return
 	}
 
@@ -94,7 +94,7 @@ func ShowBoard(c *gin.Context) {
 
 	if b.Find(uint(id), uid).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
@@ -106,7 +106,7 @@ func DeleteBoard(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
 		return
 	}
 

@@ -31,7 +31,7 @@ func CreateUser(c *gin.Context) {
 	}
 
 	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors(err.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors(err.Error())})
 		return
 	}
 

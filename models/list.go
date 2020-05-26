@@ -67,7 +67,7 @@ func (l *List) Delete() []validator.ValidationError {
 
 	if err := db.Delete(l).Error; err != nil {
 		log.Printf("fail to delete list: %v", err)
-		return validator.MakeErrors("invalid request")
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil

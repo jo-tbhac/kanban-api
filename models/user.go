@@ -35,7 +35,7 @@ func (u *User) Create(name, email, pw string) []validator.ValidationError {
 	passwordDigest, err := encryptPassword(pw)
 	if err != nil {
 		log.Printf("fail to encrypted password: %v", err)
-		return validator.MakeErrors("internal server error")
+		return validator.NewValidationErrors("internal server error")
 	}
 
 	u.Name = name
