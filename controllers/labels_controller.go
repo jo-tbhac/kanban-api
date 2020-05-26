@@ -28,7 +28,7 @@ func CreateLabel(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
 		return
 	}
 
@@ -73,7 +73,7 @@ func UpdateLabel(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
 		return
 	}
 
