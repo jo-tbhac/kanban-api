@@ -42,7 +42,13 @@ func ValidationMessages(err error) []ValidationError {
 			t := fmt.Sprintf("%s must be hexcolor", e.Field())
 			validationErrors = append(validationErrors, ValidationError{t})
 		case "max":
-			t := fmt.Sprintf("%s less than %s", e.Field(), e.Param())
+			t := fmt.Sprintf("%s is too long (maximum is %s characters)", e.Field(), e.Param())
+			validationErrors = append(validationErrors, ValidationError{t})
+		case "min":
+			t := fmt.Sprintf("%s is too short (minimum is %s characters", e.Field(), e.Param())
+			validationErrors = append(validationErrors, ValidationError{t})
+		case "eqfield":
+			t := fmt.Sprintf("%s must be equal to %s", e.Field(), e.Param())
 			validationErrors = append(validationErrors, ValidationError{t})
 		}
 	}
