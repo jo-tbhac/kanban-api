@@ -18,6 +18,8 @@ type Board struct {
 	Lists     []List     `json:"lists"`
 }
 
+type Boards []Board
+
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&Board{})
@@ -74,8 +76,8 @@ func (b *Board) Delete() []validator.ValidationError {
 	return nil
 }
 
-func GetAllBoard(b *[]Board, u *User) {
+func (bs *Boards) GetAll(u *User) {
 	db := db.Get()
 
-	db.Preload("Lists").Model(u).Related(b)
+	db.Preload("Lists").Model(u).Related(bs)
 }

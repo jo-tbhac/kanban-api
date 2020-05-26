@@ -72,11 +72,11 @@ func updateBoard(c *gin.Context) {
 }
 
 func indexBoard(c *gin.Context) {
-	var b []models.Board
+	var bs models.Boards
 	u := currentUser(c)
 
-	models.GetAllBoard(&b, &u)
-	c.JSON(http.StatusOK, gin.H{"boards": b})
+	bs.GetAll(&u)
+	c.JSON(http.StatusOK, gin.H{"boards": bs})
 }
 
 func showBoard(c *gin.Context) {
