@@ -31,11 +31,6 @@ type UserParams struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
 }
 
-type SessionParams struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&User{})
@@ -64,9 +59,7 @@ func (u *User) Create(p UserParams) error {
 func (u *User) SignIn(email, password string) error {
 	db := db.Get()
 
-	db.Where("email = ?", email).First(u)
-
-	if u.ID == UserDoesNotExist {
+	if db.Where("email = ?", email).First(u); u.ID == 0 {
 		return errors.New("user does not exist")
 	}
 
@@ -81,9 +74,7 @@ func (u *User) SignIn(email, password string) error {
 		return errors.New("internal server error")
 	}
 
-	u.RememberToken = t
-
-	db.Save(u)
+	db.Model(u).Select("remember_token").Updates(map[string]interface{}{"remember_token": t})
 
 	return nil
 }
