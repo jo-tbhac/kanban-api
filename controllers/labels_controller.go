@@ -97,11 +97,11 @@ func indexLabel(c *gin.Context) {
 		return
 	}
 
-	var l []models.Label
+	var ls models.Labels
 
-	models.GetAllLabel(&l, uint(bid), currentUser(c).ID)
+	ls.GetAll(uint(bid), currentUser(c).ID)
 
-	c.JSON(http.StatusOK, gin.H{"labels": l})
+	c.JSON(http.StatusOK, gin.H{"labels": ls})
 }
 
 func deleteLabel(c *gin.Context) {

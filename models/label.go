@@ -19,6 +19,8 @@ type Label struct {
 	BoardID   uint       `json:"board_id"`
 }
 
+type Labels []Label
+
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&Label{})
@@ -68,11 +70,11 @@ func (l *Label) Delete() []validator.ValidationError {
 	return nil
 }
 
-func GetAllLabel(l *[]Label, bid, uid uint) {
+func (ls *Labels) GetAll(bid, uid uint) {
 	db := db.Get()
 
 	db.Joins("Join boards on boards.id = labels.board_id").
 		Where("boards.user_id = ?", uid).
 		Where("labels.board_id = ?", bid).
-		Find(l)
+		Find(ls)
 }
