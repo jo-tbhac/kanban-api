@@ -1,10 +1,8 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -23,29 +21,6 @@ func init() {
 	db := db.Get()
 	db.AutoMigrate(&Board{})
 	db.Model(&Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-}
-
-func BoardOwnerValidation(uid uint) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("boards.user_id = ?", uid)
-	}
-}
-
-func JoinBoardTableTo(tn string) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		query := fmt.Sprintf("left join boards on boards.id = %s.board_id", tn)
-		return db.Table(tn).Joins(query)
-	}
-}
-
-func RelatedBoardOwnerIsValid(bid, uid uint) bool {
-	db := db.Get()
-
-	var b Board
-
-	db.First(&b, bid)
-
-	return b.UserID == uid
 }
 
 func ValidateUID(id, uid uint) bool {
