@@ -31,8 +31,8 @@ func init() {
 
 func (u *User) Create(name, email, pw string) []validator.ValidationError {
 	db := db.Get()
-
 	passwordDigest, err := encryptPassword(pw)
+
 	if err != nil {
 		log.Printf("fail to encrypted password: %v", err)
 		return validator.NewValidationErrors("internal server error")
@@ -91,7 +91,6 @@ func newSessionToken() (string, error) {
 
 func encryptPassword(password string) (digest string, err error) {
 	h, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
 	digest = string(h)
 
 	return

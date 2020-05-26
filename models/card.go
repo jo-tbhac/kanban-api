@@ -25,7 +25,6 @@ func init() {
 
 func (c *Card) ValidateUID(uid uint) bool {
 	db := db.Get()
-
 	var b Board
 
 	db.Joins("Join lists ON boards.id = lists.board_id").

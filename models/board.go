@@ -28,7 +28,6 @@ func init() {
 
 func ValidateUID(id, uid uint) bool {
 	db := db.Get()
-
 	var b Board
 
 	db.Select("user_id").First(&b, id)
