@@ -37,7 +37,7 @@ func createCard(c *gin.Context) {
 		ListID: uint(lid),
 	}
 
-	if !ca.ValidateUID(CurrentUser(c).ID) {
+	if !ca.ValidateUID(currentUser(c).ID) {
 		log.Println("uid does not match board.user_id associated with the card")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
 		return
@@ -62,7 +62,7 @@ func updateCard(c *gin.Context) {
 
 	var ca models.Card
 
-	if ca.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
+	if ca.Find(uint(id), currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the card")
 		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
 		return

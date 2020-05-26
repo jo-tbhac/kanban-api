@@ -32,7 +32,7 @@ func createLabel(c *gin.Context) {
 		return
 	}
 
-	if !models.ValidateUID(uint(bid), CurrentUser(c).ID) {
+	if !models.ValidateUID(uint(bid), currentUser(c).ID) {
 		log.Println("uid does not match board.user_id associated with the label")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("board_id is invalid")})
 		return
@@ -63,7 +63,7 @@ func updateLabel(c *gin.Context) {
 
 	var l models.Label
 
-	if l.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
+	if l.Find(uint(id), currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the label")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
@@ -99,7 +99,7 @@ func indexLabel(c *gin.Context) {
 
 	var l []models.Label
 
-	models.GetAllLabel(&l, uint(bid), CurrentUser(c).ID)
+	models.GetAllLabel(&l, uint(bid), currentUser(c).ID)
 
 	c.JSON(http.StatusOK, gin.H{"labels": l})
 }
@@ -115,7 +115,7 @@ func deleteLabel(c *gin.Context) {
 
 	var l models.Label
 
-	if l.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
+	if l.Find(uint(id), currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the label")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return

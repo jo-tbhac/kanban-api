@@ -24,7 +24,7 @@ func authenticate() gin.HandlerFunc {
 	}
 }
 
-func CurrentUser(c *gin.Context) models.User {
+func currentUser(c *gin.Context) models.User {
 	return c.Keys["user"].(models.User)
 }
 

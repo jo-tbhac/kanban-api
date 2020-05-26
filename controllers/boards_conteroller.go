@@ -25,7 +25,7 @@ func createBoard(c *gin.Context) {
 
 	b := models.Board{
 		Name:   p.Name,
-		UserID: CurrentUser(c).ID,
+		UserID: currentUser(c).ID,
 	}
 
 	if err := b.Create(); err != nil {
@@ -47,7 +47,7 @@ func updateBoard(c *gin.Context) {
 
 	var b models.Board
 
-	if b.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
+	if b.Find(uint(id), currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
@@ -73,7 +73,7 @@ func updateBoard(c *gin.Context) {
 
 func indexBoard(c *gin.Context) {
 	var b []models.Board
-	u := CurrentUser(c)
+	u := currentUser(c)
 
 	models.GetAllBoard(&b, &u)
 	c.JSON(http.StatusOK, gin.H{"boards": b})
@@ -90,7 +90,7 @@ func showBoard(c *gin.Context) {
 
 	var b models.Board
 
-	uid := CurrentUser(c).ID
+	uid := currentUser(c).ID
 
 	if b.Find(uint(id), uid).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
@@ -112,7 +112,7 @@ func deleteBoard(c *gin.Context) {
 
 	b := models.Board{
 		ID:     uint(id),
-		UserID: CurrentUser(c).ID,
+		UserID: currentUser(c).ID,
 	}
 
 	if err := b.Delete(); err != nil {
