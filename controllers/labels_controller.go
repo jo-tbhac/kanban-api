@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -15,33 +14,27 @@ type LabelParams struct {
 	Color string `json:"color"`
 }
 
-func CreateLabel(c *gin.Context) {
-	bid, err := strconv.Atoi(c.Query("board_id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("board_id must be an integer")})
-		return
-	}
-
+func createLabel(c *gin.Context) {
 	var p LabelParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
-	if !models.ValidateUID(uint(bid), CurrentUser(c).ID) {
+	bid := getIDParam(c, "boardID")
+
+	if !models.ValidateUID(bid, currentUser(c).ID) {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("board_id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("board_id is invalid")})
 		return
 	}
 
 	l := models.Label{
 		Name:    p.Name,
 		Color:   p.Color,
-		BoardID: uint(bid),
+		BoardID: bid,
 	}
 
 	if err := l.Create(); err != nil {
@@ -52,20 +45,13 @@ func CreateLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func UpdateLabel(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func updateLabel(c *gin.Context) {
+	id := getIDParam(c, "labelID")
 	var l models.Label
 
-	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+	if l.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
@@ -73,7 +59,7 @@ func UpdateLabel(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
@@ -88,36 +74,22 @@ func UpdateLabel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func IndexLabel(c *gin.Context) {
-	bid, err := strconv.Atoi(c.Query("board_id"))
+func indexLabel(c *gin.Context) {
+	bid := getIDParam(c, "boardID")
+	var ls models.Labels
 
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
+	ls.GetAll(bid, currentUser(c).ID)
 
-	var l []models.Label
-
-	models.GetAllLabel(&l, uint(bid), CurrentUser(c).ID)
-
-	c.JSON(http.StatusOK, gin.H{"labels": l})
+	c.JSON(http.StatusOK, gin.H{"labels": ls})
 }
 
-func DeleteLabel(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func deleteLabel(c *gin.Context) {
+	id := getIDParam(c, "labelID")
 	var l models.Label
 
-	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+	if l.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 

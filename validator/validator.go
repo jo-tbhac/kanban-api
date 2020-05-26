@@ -21,7 +21,7 @@ func init() {
 	validate = validator.New()
 }
 
-func MakeErrors(messages ...string) []ValidationError {
+func NewValidationErrors(messages ...string) []ValidationError {
 	var validationErrors []ValidationError
 
 	for _, t := range messages {
@@ -35,7 +35,7 @@ func Validate(s interface{}) error {
 	return validate.Struct(s)
 }
 
-func ValidationMessages(err error) []ValidationError {
+func FormattedValidationError(err error) []ValidationError {
 	var validationErrors []ValidationError
 
 	for _, e := range err.(validator.ValidationErrors) {
@@ -65,7 +65,7 @@ func FormattedMySQLError(err error) []ValidationError {
 	switch regexpMySQLErrorCode.FindStringSubmatch(err.Error())[1] {
 	case "1062":
 		v := strings.ReplaceAll(regexpMySQLErrorValue.FindString(err.Error()), "'", "")
-		return MakeErrors(fmt.Sprintf("%s has already been taken", v))
+		return NewValidationErrors(fmt.Sprintf("%s has already been taken", v))
 	default:
 		return nil
 	}

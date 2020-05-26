@@ -15,11 +15,11 @@ type UserParams struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
 }
 
-func CreateUser(c *gin.Context) {
+func createUser(c *gin.Context) {
 	var p UserParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.ValidationMessages(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
 		return
 	}
 
@@ -31,7 +31,7 @@ func CreateUser(c *gin.Context) {
 	}
 
 	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors(err.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors(err.Error())})
 		return
 	}
 

@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -14,18 +13,18 @@ type BoardParams struct {
 	Name string `json:"name"`
 }
 
-func CreateBoard(c *gin.Context) {
+func createBoard(c *gin.Context) {
 	var p BoardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
 	b := models.Board{
 		Name:   p.Name,
-		UserID: CurrentUser(c).ID,
+		UserID: currentUser(c).ID,
 	}
 
 	if err := b.Create(); err != nil {
@@ -36,20 +35,13 @@ func CreateBoard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"board": b})
 }
 
-func UpdateBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func updateBoard(c *gin.Context) {
+	id := getIDParam(c, "boardID")
 	var b models.Board
 
-	if b.Find(uint(id), CurrentUser(c).ID); b.ID == 0 {
+	if b.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
@@ -57,7 +49,7 @@ func UpdateBoard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.AbortWithStatus(500)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
@@ -71,48 +63,31 @@ func UpdateBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"board": b})
 }
 
-func IndexBoard(c *gin.Context) {
-	var b []models.Board
-	u := CurrentUser(c)
+func indexBoard(c *gin.Context) {
+	var bs models.Boards
+	u := currentUser(c)
 
-	models.GetAllBoard(&b, &u)
-	c.JSON(http.StatusOK, gin.H{"boards": b})
+	bs.GetAll(&u)
+	c.JSON(http.StatusOK, gin.H{"boards": bs})
 }
 
-func ShowBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func showBoard(c *gin.Context) {
+	id := getIDParam(c, "boardID")
 	var b models.Board
 
-	uid := CurrentUser(c).ID
-
-	if b.Find(uint(id), uid); b.ID == 0 {
+	if b.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"board": b})
 }
 
-func DeleteBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func deleteBoard(c *gin.Context) {
 	b := models.Board{
-		ID:     uint(id),
-		UserID: CurrentUser(c).ID,
+		ID:     getIDParam(c, "boardID"),
+		UserID: currentUser(c).ID,
 	}
 
 	if err := b.Delete(); err != nil {

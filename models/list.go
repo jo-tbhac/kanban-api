@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -27,10 +28,10 @@ func (l *List) BeforeSave() error {
 	return validator.Validate(l)
 }
 
-func (l *List) Find(id, uid uint) {
+func (l *List) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	db.Joins("Join boards on boards.id = lists.board_id").
+	return db.Joins("Join boards on boards.id = lists.board_id").
 		Where("boards.user_id = ?", uid).
 		First(l, id)
 }
@@ -45,7 +46,7 @@ func (l *List) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(l).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -55,7 +56,7 @@ func (l *List) Update() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Save(l).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -66,7 +67,7 @@ func (l *List) Delete() []validator.ValidationError {
 
 	if err := db.Delete(l).Error; err != nil {
 		log.Printf("fail to delete list: %v", err)
-		return validator.MakeErrors("invalid request")
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil

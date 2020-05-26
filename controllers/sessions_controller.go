@@ -14,18 +14,18 @@ type SessionParams struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func CreateSession(c *gin.Context) {
+func createSession(c *gin.Context) {
 	var p SessionParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
 	var u models.User
 
 	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors(err.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors(err.Error())})
 		return
 	}
 

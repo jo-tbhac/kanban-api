@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -15,31 +14,23 @@ type CardParams struct {
 	Description string `json:"description"`
 }
 
-func CreateCard(c *gin.Context) {
-	lid, err := strconv.Atoi(c.Query("list_id"))
-
-	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("list_id must be an integer")})
-		return
-	}
-
+func createCard(c *gin.Context) {
 	var p CardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 
 	ca := models.Card{
 		Title:  p.Title,
-		ListID: uint(lid),
+		ListID: getIDParam(c, "listID"),
 	}
 
-	if !ca.ValidateUID(CurrentUser(c).ID) {
+	if !ca.ValidateUID(currentUser(c).ID) {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid request")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
 		return
 	}
 
@@ -51,20 +42,13 @@ func CreateCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"card": ca})
 }
 
-func UpdateCard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
-		return
-	}
-
+func updateCard(c *gin.Context) {
+	id := getIDParam(c, "cardID")
 	var ca models.Card
 
-	if ca.Find(uint(id), CurrentUser(c).ID); ca.ID == 0 {
+	if ca.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
 		return
 	}
 
@@ -72,7 +56,7 @@ func UpdateCard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 

@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -17,6 +18,8 @@ type Board struct {
 	Lists     []List     `json:"lists"`
 }
 
+type Boards []Board
+
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&Board{})
@@ -25,7 +28,6 @@ func init() {
 
 func ValidateUID(id, uid uint) bool {
 	db := db.Get()
-
 	var b Board
 
 	db.Select("user_id").First(&b, id)
@@ -37,17 +39,17 @@ func (b *Board) BeforeSave() error {
 	return validator.Validate(b)
 }
 
-func (b *Board) Find(id, uid uint) {
+func (b *Board) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	db.Where("user_id = ?", uid).First(b, id)
+	return db.Where("user_id = ?", uid).First(b, id)
 }
 
 func (b *Board) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(b).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -57,7 +59,7 @@ func (b *Board) Update() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Save(b).Error; err != nil {
-		return validator.ValidationMessages(err)
+		return validator.FormattedValidationError(err)
 	}
 
 	return nil
@@ -67,14 +69,14 @@ func (b *Board) Delete() []validator.ValidationError {
 	db := db.Get()
 
 	if r := db.Where("user_id = ?", b.UserID).Delete(b).RowsAffected; r == 0 {
-		return validator.MakeErrors("invalid request")
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil
 }
 
-func GetAllBoard(b *[]Board, u *User) {
+func (bs *Boards) GetAll(u *User) {
 	db := db.Get()
 
-	db.Preload("Lists").Model(u).Related(b)
+	db.Preload("Lists").Model(u).Related(bs)
 }
