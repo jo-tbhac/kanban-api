@@ -33,26 +33,26 @@ func StartServer() {
 
 	authorized := r.Group("/", authenticate())
 
-	r.POST("/users", CreateUser)
-	r.POST("/sessions", CreateSession)
+	r.POST("/users", createUser)
+	r.POST("/sessions", createSession)
 
-	authorized.POST("/boards", CreateBoard)
-	authorized.PATCH("/boards", UpdateBoard)
-	authorized.GET("/boards", IndexBoard)
-	authorized.GET("/board", ShowBoard)
-	authorized.DELETE("/board", DeleteBoard)
+	authorized.POST("/boards", createBoard)
+	authorized.PATCH("/boards", updateBoard)
+	authorized.GET("/boards", indexBoard)
+	authorized.GET("/board", showBoard)
+	authorized.DELETE("/board", deleteBoard)
 
-	authorized.POST("/labels", CreateLabel)
-	authorized.PATCH("/labels", UpdateLabel)
-	authorized.GET("/labels", IndexLabel)
-	authorized.DELETE("/label", DeleteLabel)
+	authorized.POST("/labels", createLabel)
+	authorized.PATCH("/labels", updateLabel)
+	authorized.GET("/labels", indexLabel)
+	authorized.DELETE("/label", deleteLabel)
 
-	authorized.POST("/lists", CreateList)
-	authorized.PATCH("/lists", UpdateList)
-	authorized.DELETE("/list", DeleteList)
+	authorized.POST("/lists", createList)
+	authorized.PATCH("/lists", updateList)
+	authorized.DELETE("/list", deleteList)
 
-	authorized.POST("/cards", CreateCard)
-	authorized.PATCH("/cards", UpdateCard)
+	authorized.POST("/cards", createCard)
+	authorized.PATCH("/cards", updateCard)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

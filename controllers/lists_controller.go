@@ -14,7 +14,7 @@ type ListParams struct {
 	Name string `json:"name"`
 }
 
-func CreateList(c *gin.Context) {
+func createList(c *gin.Context) {
 	bid, err := strconv.Atoi(c.Query("board_id"))
 
 	if err != nil {
@@ -50,7 +50,7 @@ func CreateList(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"list": l})
 }
 
-func UpdateList(c *gin.Context) {
+func updateList(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {
@@ -85,7 +85,7 @@ func UpdateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func DeleteList(c *gin.Context) {
+func deleteList(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {

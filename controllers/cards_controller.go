@@ -15,7 +15,7 @@ type CardParams struct {
 	Description string `json:"description"`
 }
 
-func CreateCard(c *gin.Context) {
+func createCard(c *gin.Context) {
 	lid, err := strconv.Atoi(c.Query("list_id"))
 
 	if err != nil {
@@ -51,7 +51,7 @@ func CreateCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"card": ca})
 }
 
-func UpdateCard(c *gin.Context) {
+func updateCard(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {

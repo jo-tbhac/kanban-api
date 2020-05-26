@@ -14,7 +14,7 @@ type BoardParams struct {
 	Name string `json:"name"`
 }
 
-func CreateBoard(c *gin.Context) {
+func createBoard(c *gin.Context) {
 	var p BoardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -36,7 +36,7 @@ func CreateBoard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"board": b})
 }
 
-func UpdateBoard(c *gin.Context) {
+func updateBoard(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {
@@ -71,7 +71,7 @@ func UpdateBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"board": b})
 }
 
-func IndexBoard(c *gin.Context) {
+func indexBoard(c *gin.Context) {
 	var b []models.Board
 	u := CurrentUser(c)
 
@@ -79,7 +79,7 @@ func IndexBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"boards": b})
 }
 
-func ShowBoard(c *gin.Context) {
+func showBoard(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {
@@ -101,7 +101,7 @@ func ShowBoard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"board": b})
 }
 
-func DeleteBoard(c *gin.Context) {
+func deleteBoard(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {

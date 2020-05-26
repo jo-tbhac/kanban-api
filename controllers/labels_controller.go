@@ -15,7 +15,7 @@ type LabelParams struct {
 	Color string `json:"color"`
 }
 
-func CreateLabel(c *gin.Context) {
+func createLabel(c *gin.Context) {
 	bid, err := strconv.Atoi(c.Query("board_id"))
 
 	if err != nil {
@@ -52,7 +52,7 @@ func CreateLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func UpdateLabel(c *gin.Context) {
+func updateLabel(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {
@@ -88,7 +88,7 @@ func UpdateLabel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func IndexLabel(c *gin.Context) {
+func indexLabel(c *gin.Context) {
 	bid, err := strconv.Atoi(c.Query("board_id"))
 
 	if err != nil {
@@ -104,7 +104,7 @@ func IndexLabel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"labels": l})
 }
 
-func DeleteLabel(c *gin.Context) {
+func deleteLabel(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {

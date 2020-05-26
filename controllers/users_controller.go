@@ -15,7 +15,7 @@ type UserParams struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
 }
 
-func CreateUser(c *gin.Context) {
+func createUser(c *gin.Context) {
 	var p UserParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
