@@ -62,7 +62,7 @@ func UpdateCard(c *gin.Context) {
 
 	var ca models.Card
 
-	if ca.Find(uint(id), CurrentUser(c).ID); ca.ID == 0 {
+	if ca.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the card")
 		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors("id is invalid")})
 		return

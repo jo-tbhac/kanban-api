@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -28,10 +29,10 @@ func (l *Label) BeforeSave() error {
 	return validator.Validate(l)
 }
 
-func (l *Label) Find(id, uid uint) {
+func (l *Label) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	db.Joins("Join boards on boards.id = labels.board_id").
+	return db.Joins("Join boards on boards.id = labels.board_id").
 		Where("boards.user_id = ?", uid).
 		First(l, id)
 }

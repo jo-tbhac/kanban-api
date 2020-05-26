@@ -61,7 +61,7 @@ func UpdateList(c *gin.Context) {
 
 	var l models.List
 
-	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+	if l.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the list")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return
@@ -96,7 +96,7 @@ func DeleteList(c *gin.Context) {
 
 	var l models.List
 
-	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+	if l.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the list")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return

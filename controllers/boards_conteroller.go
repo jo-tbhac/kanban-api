@@ -47,7 +47,7 @@ func UpdateBoard(c *gin.Context) {
 
 	var b models.Board
 
-	if b.Find(uint(id), CurrentUser(c).ID); b.ID == 0 {
+	if b.Find(uint(id), CurrentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return
@@ -92,7 +92,7 @@ func ShowBoard(c *gin.Context) {
 
 	uid := CurrentUser(c).ID
 
-	if b.Find(uint(id), uid); b.ID == 0 {
+	if b.Find(uint(id), uid).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return

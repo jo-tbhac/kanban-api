@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -37,10 +38,10 @@ func (b *Board) BeforeSave() error {
 	return validator.Validate(b)
 }
 
-func (b *Board) Find(id, uid uint) {
+func (b *Board) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	db.Where("user_id = ?", uid).First(b, id)
+	return db.Where("user_id = ?", uid).First(b, id)
 }
 
 func (b *Board) Create() []validator.ValidationError {
