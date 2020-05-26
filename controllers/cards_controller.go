@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -16,14 +15,6 @@ type CardParams struct {
 }
 
 func createCard(c *gin.Context) {
-	lid, err := strconv.Atoi(c.Query("list_id"))
-
-	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("list_id must be an integer")})
-		return
-	}
-
 	var p CardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -34,7 +25,7 @@ func createCard(c *gin.Context) {
 
 	ca := models.Card{
 		Title:  p.Title,
-		ListID: uint(lid),
+		ListID: getIDParam(c, "listID"),
 	}
 
 	if !ca.ValidateUID(currentUser(c).ID) {
@@ -52,17 +43,10 @@ func createCard(c *gin.Context) {
 }
 
 func updateCard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
+	id := getIDParam(c, "cardID")
 	var ca models.Card
 
-	if ca.Find(uint(id), currentUser(c).ID).RecordNotFound() {
+	if ca.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the card")
 		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
 		return

@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -37,17 +36,10 @@ func createBoard(c *gin.Context) {
 }
 
 func updateBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
+	id := getIDParam(c, "boardID")
 	var b models.Board
 
-	if b.Find(uint(id), currentUser(c).ID).RecordNotFound() {
+	if b.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
@@ -80,19 +72,10 @@ func indexBoard(c *gin.Context) {
 }
 
 func showBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
+	id := getIDParam(c, "boardID")
 	var b models.Board
 
-	uid := currentUser(c).ID
-
-	if b.Find(uint(id), uid).RecordNotFound() {
+	if b.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
@@ -102,16 +85,8 @@ func showBoard(c *gin.Context) {
 }
 
 func deleteBoard(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
 	b := models.Board{
-		ID:     uint(id),
+		ID:     getIDParam(c, "boardID"),
 		UserID: currentUser(c).ID,
 	}
 

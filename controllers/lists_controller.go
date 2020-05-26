@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
@@ -15,14 +14,6 @@ type ListParams struct {
 }
 
 func createList(c *gin.Context) {
-	bid, err := strconv.Atoi(c.Query("board_id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("board_id must be an integer")})
-		return
-	}
-
 	var p ListParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -30,6 +21,8 @@ func createList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
+
+	bid := getIDParam(c, "boardID")
 
 	if !models.ValidateUID(uint(bid), currentUser(c).ID) {
 		log.Println("uid does not match board.user_id associated with the label")
@@ -39,7 +32,7 @@ func createList(c *gin.Context) {
 
 	l := models.List{
 		Name:    p.Name,
-		BoardID: uint(bid),
+		BoardID: bid,
 	}
 
 	if err := l.Create(); err != nil {
@@ -51,17 +44,10 @@ func createList(c *gin.Context) {
 }
 
 func updateList(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
+	id := getIDParam(c, "labelID")
 	var l models.List
 
-	if l.Find(uint(id), currentUser(c).ID).RecordNotFound() {
+	if l.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the list")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
@@ -86,17 +72,10 @@ func updateList(c *gin.Context) {
 }
 
 func deleteList(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
-
-	if err != nil {
-		log.Printf("fail to cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id must be an integer")})
-		return
-	}
-
+	id := getIDParam(c, "labelID")
 	var l models.List
 
-	if l.Find(uint(id), currentUser(c).ID).RecordNotFound() {
+	if l.Find(id, currentUser(c).ID).RecordNotFound() {
 		log.Println("uid does not match board.user_id associated with the list")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
 		return
