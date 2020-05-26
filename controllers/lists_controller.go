@@ -7,24 +7,43 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/validator"
 )
 
-func CreateList(c *gin.Context) {
-	var l models.List
+type ListParams struct {
+	Name string `json:"name"`
+}
 
-	if err := c.BindJSON(&l); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func CreateList(c *gin.Context) {
+	bid, err := strconv.Atoi(c.Query("board_id"))
+
+	if err != nil {
+		log.Printf("fail to cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("board_id must be an integer")})
 		return
 	}
 
-	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
-		log.Println("does not match uid and board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+	var p ListParams
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
 		return
+	}
+
+	if !models.ValidateUID(uint(bid), CurrentUser(c).ID) {
+		log.Println("uid does not match board.user_id associated with the label")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("board_id is invalid")})
+		return
+	}
+
+	l := models.List{
+		Name:    p.Name,
+		BoardID: uint(bid),
 	}
 
 	if err := l.Create(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
@@ -32,23 +51,34 @@ func CreateList(c *gin.Context) {
 }
 
 func UpdateList(c *gin.Context) {
+	id, err := strconv.Atoi(c.Query("id"))
+
+	if err != nil {
+		log.Printf("fail to cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
+		return
+	}
+
 	var l models.List
 
-	if err := c.BindJSON(&l); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+		log.Println("uid does not match board.user_id associated with the list")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return
 	}
 
-	l.GetBoardID()
+	var p ListParams
 
-	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
-		log.Println("does not match uid and board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
 		return
 	}
+
+	l.Name = p.Name
 
 	if err := l.Update(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
@@ -56,27 +86,24 @@ func UpdateList(c *gin.Context) {
 }
 
 func DeleteList(c *gin.Context) {
-	lid, err := strconv.Atoi(c.Query("list_id"))
+	id, err := strconv.Atoi(c.Query("id"))
 
 	if err != nil {
-		log.Printf("failed cast string to int: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		log.Printf("fail to cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id must be an integer")})
 		return
 	}
 
-	l := models.List{ID: uint(lid)}
+	var l models.List
 
-	l.GetBoardID()
-
-	if !models.RelatedBoardOwnerIsValid(l.BoardID, CurrentUser(c).ID) {
-		log.Println("does not match uid and board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+	if l.Find(uint(id), CurrentUser(c).ID); l.ID == 0 {
+		log.Println("uid does not match board.user_id associated with the list")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("id is invalid")})
 		return
 	}
 
 	if err := l.Delete(); err != nil {
-		log.Printf("failed delete a list: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed delete a list"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
