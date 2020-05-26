@@ -2,9 +2,14 @@ package validator
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
+
+var regexpMySQLErrorCode = regexp.MustCompile(`^Error ([0-9]{4})`)
+var regexpMySQLErrorValue = regexp.MustCompile(`'(.*?)'`)
 
 type ValidationError struct {
 	Text string `json:"text"`
@@ -54,4 +59,14 @@ func ValidationMessages(err error) []ValidationError {
 	}
 
 	return validationErrors
+}
+
+func FormattedMySQLError(err error) []ValidationError {
+	switch regexpMySQLErrorCode.FindStringSubmatch(err.Error())[1] {
+	case "1062":
+		v := strings.ReplaceAll(regexpMySQLErrorValue.FindString(err.Error()), "'", "")
+		return MakeErrors(fmt.Sprintf("%s has already been taken", v))
+	default:
+		return nil
+	}
 }
