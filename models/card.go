@@ -14,7 +14,7 @@ type Card struct {
 	DeletedAt   *time.Time `json:"deleted_at"`
 	Title       string     `json:"title" validate:"required,max=50"`
 	Description string     `json:"description"`
-	ListID      uint       `json:"list_id" validate:"required"`
+	ListID      uint       `json:"list_id"`
 }
 
 func init() {
@@ -22,34 +22,37 @@ func init() {
 	db.AutoMigrate(&Card{})
 }
 
-func (c *Card) BeforeSave() error {
-	return validator.Validate(c)
-}
-
-func (c *Card) GetBoardID() uint {
+func (c *Card) ValidateUID(uid uint) bool {
 	db := db.Get()
 
-	var l List
+	var b Board
 
-	db.First(&l, c.ListID)
+	db.Joins("Join lists ON boards.id = lists.board_id").
+		Select("user_id").
+		Where("lists.id = ?", c.ListID).
+		First(&b)
 
-	return l.BoardID
+	return b.UserID == uid
+}
+
+func (c *Card) BeforeSave() error {
+	return validator.Validate(c)
 }
 
 func (c *Card) Find(id, uid uint) {
 	db := db.Get()
 
-	db.Joins("Join lists ON lists.id = cards.id").
+	db.Joins("Join lists ON lists.id = cards.list_id").
 		Joins("Join boards ON boards.id = lists.board_id").
 		Where("boards.user_id = ?", uid).
 		First(c, id)
 }
 
-func (c *Card) Create() error {
+func (c *Card) Create() []validator.ValidationError {
 	db := db.Get()
 
 	if err := db.Create(c).Error; err != nil {
-		return err
+		return validator.ValidationMessages(err)
 	}
 
 	return nil

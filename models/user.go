@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"github.com/jo-tbhac/kanban-api/db"
+	"github.com/jo-tbhac/kanban-api/validator"
 	"golang.org/x/crypto/bcrypt"
 )
-
-const UserDoesNotExist = 0
 
 type User struct {
 	ID             uint      `json:"id"`
@@ -24,38 +23,27 @@ type User struct {
 	Boards         []Board   `json:"boards" gorm:"foreignkey:UserID"`
 }
 
-type UserParams struct {
-	Name                 string `json:"name" binding:"required"`
-	Email                string `json:"email" binding:"required,email"`
-	Password             string `json:"password" binding:"required,min=8,eqfield=PasswordConfirmation"`
-	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
-}
-
-type SessionParams struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&User{})
 	db.Model(&User{}).AddUniqueIndex("idx_users_email", "email")
 }
 
-func (u *User) Create(p UserParams) error {
+func (u *User) Create(name, email, pw string) []validator.ValidationError {
 	db := db.Get()
 
-	passwordDigest, err := encryptPassword(p.Password)
+	passwordDigest, err := encryptPassword(pw)
 	if err != nil {
-		return err
+		log.Printf("fail to encrypted password: %v", err)
+		return validator.MakeErrors("internal server error")
 	}
 
+	u.Name = name
+	u.Email = email
 	u.PasswordDigest = passwordDigest
-	u.Name = p.Name
-	u.Email = p.Email
 
 	if err := db.Create(u).Error; err != nil {
-		return err
+		return validator.FormattedMySQLError(err)
 	}
 
 	return nil
@@ -64,9 +52,7 @@ func (u *User) Create(p UserParams) error {
 func (u *User) SignIn(email, password string) error {
 	db := db.Get()
 
-	db.Where("email = ?", email).First(u)
-
-	if u.ID == UserDoesNotExist {
+	if db.Where("email = ?", email).First(u); u.ID == 0 {
 		return errors.New("user does not exist")
 	}
 
@@ -81,9 +67,7 @@ func (u *User) SignIn(email, password string) error {
 		return errors.New("internal server error")
 	}
 
-	u.RememberToken = t
-
-	db.Save(u)
+	db.Model(u).Select("remember_token").Updates(map[string]interface{}{"remember_token": t})
 
 	return nil
 }
@@ -92,7 +76,7 @@ func (u *User) IsSignedIn(token string) bool {
 	db := db.Get()
 	db.Where("remember_token = ?", token).First(u)
 
-	return u.ID != UserDoesNotExist
+	return u.ID != 0
 }
 
 func newSessionToken() (string, error) {

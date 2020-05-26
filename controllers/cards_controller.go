@@ -10,24 +10,41 @@ import (
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
-func CreateCard(c *gin.Context) {
-	var ca models.Card
+type CardParams struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
 
-	if err := c.BindJSON(&ca); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func CreateCard(c *gin.Context) {
+	lid, err := strconv.Atoi(c.Query("list_id"))
+
+	if err != nil {
+		log.Printf("failed cast string to int: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("list_id must be an integer")})
 		return
 	}
 
-	bid := ca.GetBoardID()
+	var p CardParams
 
-	if !models.RelatedBoardOwnerIsValid(bid, CurrentUser(c).ID) {
-		log.Println("does not match uid and board.user_id")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
+		return
+	}
+
+	ca := models.Card{
+		Title:  p.Title,
+		ListID: uint(lid),
+	}
+
+	if !ca.ValidateUID(CurrentUser(c).ID) {
+		log.Println("uid does not match board.user_id associated with the card")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid request")})
 		return
 	}
 
 	if err := ca.Create(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
@@ -51,11 +68,15 @@ func UpdateCard(c *gin.Context) {
 		return
 	}
 
-	if err := c.BindJSON(&ca); err != nil {
-		log.Printf("failed bind JSON: %v", err)
-		c.AbortWithStatus(500)
+	var p CardParams
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.MakeErrors("invalid parameters")})
 		return
 	}
+
+	ca.Title = p.Title
 
 	if err := ca.Update(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})

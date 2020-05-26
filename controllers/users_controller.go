@@ -5,25 +5,33 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/validator"
 )
 
-func CreateUser(c *gin.Context) {
-	var p models.UserParams
+type UserParams struct {
+	Name                 string `json:"name" binding:"required"`
+	Email                string `json:"email" binding:"required,email"`
+	Password             string `json:"password" binding:"required,min=8,eqfield=PasswordConfirmation"`
+	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
+}
 
-	if err := c.BindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, []string{err.Error()})
+func CreateUser(c *gin.Context) {
+	var p UserParams
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.ValidationMessages(err)})
 		return
 	}
 
 	var u models.User
 
-	if err := u.Create(p); err != nil {
-		c.JSON(http.StatusBadRequest, []string{err.Error()})
+	if err := u.Create(p.Name, p.Email, p.Password); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
 	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.MakeErrors(err.Error())})
 		return
 	}
 
