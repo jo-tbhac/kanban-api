@@ -42,7 +42,11 @@ func (b *Board) BeforeSave() error {
 func (b *Board) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	return db.Where("user_id = ?", uid).First(b, id)
+	return db.Preload("Lists").
+		Preload("Lists.Cards").
+		Preload("Lists.Cards.Labels").
+		Where("user_id = ?", uid).
+		First(b, id)
 }
 
 func (b *Board) Create() []validator.ValidationError {
@@ -78,5 +82,5 @@ func (b *Board) Delete() []validator.ValidationError {
 func (bs *Boards) GetAll(u *User) {
 	db := db.Get()
 
-	db.Preload("Lists").Model(u).Related(bs)
+	db.Model(u).Related(bs)
 }

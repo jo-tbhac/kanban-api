@@ -16,6 +16,7 @@ type Card struct {
 	Title       string     `json:"title" validate:"required,max=50"`
 	Description string     `json:"description"`
 	ListID      uint       `json:"list_id"`
+	Labels      []Label    `json:"labels" gorm:"many2many:card_labels;"`
 }
 
 func init() {

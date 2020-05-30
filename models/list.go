@@ -16,6 +16,7 @@ type List struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 	Name      string     `json:"name" validate:"required,max=50"`
 	BoardID   uint       `json:"board_id"`
+	Cards     []Card     `json:"cards"`
 }
 
 func init() {
