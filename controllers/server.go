@@ -90,6 +90,7 @@ func StartServer() {
 
 	authorized.POST("/list/:listID/cards", createCard)
 	authorized.PATCH("/cards/:cardID", updateCard)
+	authorized.DELETE("/card/:cardID", deleteCard)
 
 	authorized.POST("/card/:cardID/card_labels", createCardLabel)
 	authorized.DELETE("/card/:cardID/card_label", deleteCardLabel)
