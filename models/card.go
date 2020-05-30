@@ -10,9 +10,9 @@ import (
 
 type Card struct {
 	ID          uint       `json:"id"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deleted_at"`
+	CreatedAt   time.Time  `json:"-"`
+	UpdatedAt   time.Time  `json:"-"`
+	DeletedAt   *time.Time `json:"-"`
 	Title       string     `json:"title" validate:"required,max=50"`
 	Description string     `json:"description"`
 	ListID      uint       `json:"list_id"`
@@ -22,6 +22,10 @@ type Card struct {
 func init() {
 	db := db.Get()
 	db.AutoMigrate(&Card{})
+}
+
+func selectCardColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("cards.id, cards.title, cards.description, cards.list_id")
 }
 
 func (c *Card) ValidateUID(uid uint) bool {

@@ -23,6 +23,10 @@ func init() {
 	db.Model(&CardLabel{}).AddForeignKey("label_id", "labels(id)", "RESTRICT", "RESTRICT")
 }
 
+func selectCardLabelColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("id, card_id, label_id")
+}
+
 func (cl *CardLabel) ValidateUID(uid uint) bool {
 	db := db.Get()
 	var b Board
@@ -54,7 +58,8 @@ func (cl *CardLabel) Create() (Label, []validator.ValidationError) {
 func (cl *CardLabel) Find(uid uint) *gorm.DB {
 	db := db.Get()
 
-	return db.Joins("Join labels ON card_labels.label_id = labels.id").
+	return db.Scopes(selectCardLabelColumn).
+		Joins("Join labels ON card_labels.label_id = labels.id").
 		Joins("Join boards ON labels.board_id = boards.id").
 		Where("boards.user_id = ?", uid).
 		Where("card_labels.label_id = ?", cl.LabelID).
