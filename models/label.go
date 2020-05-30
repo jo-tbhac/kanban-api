@@ -11,12 +11,12 @@ import (
 
 type Label struct {
 	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `json:"-"`
 	Name      string     `json:"name" validate:"required,max=50"`
 	Color     string     `json:"color" validate:"required,hexcolor"`
-	BoardID   uint       `json:"board_id"`
+	BoardID   uint       `json:"-"`
 }
 
 type Labels []Label
@@ -25,6 +25,14 @@ func init() {
 	db := db.Get()
 	db.AutoMigrate(&Label{})
 	db.Model(&Label{}).AddForeignKey("board_id", "boards(id)", "RESTRICT", "RESTRICT")
+}
+
+func selectLabelColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("labels.id, labels.name, labels.color, labels.board_id")
+}
+
+func selectWithLabelAssociationKey(db *gorm.DB) *gorm.DB {
+	return db.Select("labels.id, labels.name, labels.color, labels.board_id, card_labels.card_id")
 }
 
 func (l *Label) BeforeSave() error {
@@ -73,7 +81,8 @@ func (l *Label) Delete() []validator.ValidationError {
 func (ls *Labels) GetAll(bid, uid uint) {
 	db := db.Get()
 
-	db.Joins("Join boards on boards.id = labels.board_id").
+	db.Scopes(selectLabelColumn).
+		Joins("Join boards on boards.id = labels.board_id").
 		Where("boards.user_id = ?", uid).
 		Where("labels.board_id = ?", bid).
 		Find(ls)

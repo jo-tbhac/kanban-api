@@ -44,7 +44,7 @@ func createList(c *gin.Context) {
 }
 
 func updateList(c *gin.Context) {
-	id := getIDParam(c, "labelID")
+	id := getIDParam(c, "listID")
 	var l models.List
 
 	if l.Find(id, currentUser(c).ID).RecordNotFound() {
@@ -72,7 +72,7 @@ func updateList(c *gin.Context) {
 }
 
 func deleteList(c *gin.Context) {
-	id := getIDParam(c, "labelID")
+	id := getIDParam(c, "listID")
 	var l models.List
 
 	if l.Find(id, currentUser(c).ID).RecordNotFound() {

@@ -10,11 +10,11 @@ import (
 
 type Board struct {
 	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
+	CreatedAt time.Time  `json:"-"`
 	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	DeletedAt *time.Time `json:"-"`
 	Name      string     `json:"name" validate:"required,max=50"`
-	UserID    uint       `json:"user_id"`
+	UserID    uint       `json:"-"`
 	Lists     []List     `json:"lists"`
 }
 
@@ -24,6 +24,10 @@ func init() {
 	db := db.Get()
 	db.AutoMigrate(&Board{})
 	db.Model(&Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+}
+
+func selectBoardColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("id, updated_at, name, user_id")
 }
 
 func ValidateUID(id, uid uint) bool {
@@ -42,9 +46,16 @@ func (b *Board) BeforeSave() error {
 func (b *Board) Find(id, uid uint) *gorm.DB {
 	db := db.Get()
 
-	return db.Preload("Lists").
-		Preload("Lists.Cards").
-		Preload("Lists.Cards.Labels").
+	return db.Scopes(selectBoardColumn).
+		Preload("Lists", func(db *gorm.DB) *gorm.DB {
+			return db.Scopes(selectListColumn)
+		}).
+		Preload("Lists.Cards", func(db *gorm.DB) *gorm.DB {
+			return db.Scopes(selectCardColumn)
+		}).
+		Preload("Lists.Cards.Labels", func(db *gorm.DB) *gorm.DB {
+			return db.Scopes(selectWithLabelAssociationKey)
+		}).
 		Where("user_id = ?", uid).
 		First(b, id)
 }
@@ -82,5 +93,5 @@ func (b *Board) Delete() []validator.ValidationError {
 func (bs *Boards) GetAll(u *User) {
 	db := db.Get()
 
-	db.Model(u).Related(bs)
+	db.Scopes(selectBoardColumn).Model(u).Related(bs)
 }
