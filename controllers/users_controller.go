@@ -8,7 +8,7 @@ import (
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
-type UserParams struct {
+type userParams struct {
 	Name                 string `json:"name" binding:"required"`
 	Email                string `json:"email" binding:"required,email"`
 	Password             string `json:"password" binding:"required,min=8,eqfield=PasswordConfirmation"`
@@ -16,7 +16,7 @@ type UserParams struct {
 }
 
 func createUser(c *gin.Context) {
-	var p UserParams
+	var p userParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
