@@ -60,7 +60,13 @@ func updateCard(c *gin.Context) {
 		return
 	}
 
-	ca.Title = p.Title
+	if p.Title != "" {
+		ca.Title = p.Title
+	}
+
+	if p.Description != "" {
+		ca.Description = p.Description
+	}
 
 	if err := ca.Update(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
