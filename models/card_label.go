@@ -1,8 +1,10 @@
 package models
 
 import (
+	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
@@ -47,4 +49,26 @@ func (cl *CardLabel) Create() (Label, []validator.ValidationError) {
 	db.Model(cl).Related(&l)
 
 	return l, nil
+}
+
+func (cl *CardLabel) Find(uid uint) *gorm.DB {
+	db := db.Get()
+
+	return db.Joins("Join labels ON card_labels.label_id = labels.id").
+		Joins("Join boards ON labels.board_id = boards.id").
+		Where("boards.user_id = ?", uid).
+		Where("card_labels.label_id = ?", cl.LabelID).
+		Where("card_labels.card_id = ?", cl.CardID).
+		First(cl)
+}
+
+func (cl *CardLabel) Delete() []validator.ValidationError {
+	db := db.Get()
+
+	if err := db.Where("label_id = ? AND card_id = ?", cl.LabelID, cl.CardID).Delete(cl).Error; err != nil {
+		log.Printf("fail to delete card_label: %v", err)
+		return validator.NewValidationErrors("invalid request")
+	}
+
+	return nil
 }

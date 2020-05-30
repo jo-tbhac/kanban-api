@@ -92,6 +92,7 @@ func StartServer() {
 	authorized.PATCH("/cards/:cardID", updateCard)
 
 	authorized.POST("/card/:cardID/card_labels", createCardLabel)
+	authorized.DELETE("/card/:cardID/card_label", deleteCardLabel)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
