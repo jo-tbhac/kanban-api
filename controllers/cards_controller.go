@@ -9,13 +9,13 @@ import (
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
-type CardParams struct {
+type cardParams struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
 func createCard(c *gin.Context) {
-	var p CardParams
+	var p cardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
@@ -52,7 +52,7 @@ func updateCard(c *gin.Context) {
 		return
 	}
 
-	var p CardParams
+	var p cardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
