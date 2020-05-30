@@ -91,5 +91,7 @@ func StartServer() {
 	authorized.POST("/list/:listID/cards", createCard)
 	authorized.PATCH("/cards/:cardID", updateCard)
 
+	authorized.POST("/card/:cardID/card_labels", createCardLabel)
+
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
