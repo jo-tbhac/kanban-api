@@ -67,3 +67,13 @@ func (c *Card) Update() []validator.ValidationError {
 
 	return nil
 }
+
+func (c *Card) Delete() []validator.ValidationError {
+	db := db.Get()
+
+	if err := db.Delete(c).Error; err != nil {
+		return validator.FormattedValidationError(err)
+	}
+
+	return nil
+}

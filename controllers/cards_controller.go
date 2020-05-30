@@ -69,3 +69,21 @@ func updateCard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"card": ca})
 }
+
+func deleteCard(c *gin.Context) {
+	id := getIDParam(c, "cardID")
+	var ca models.Card
+
+	if ca.Find(id, currentUser(c).ID).RecordNotFound() {
+		log.Println("uid does not match board.user_id associated with the card")
+		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
+		return
+	}
+
+	if err := ca.Delete(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
