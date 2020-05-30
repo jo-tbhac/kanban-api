@@ -70,29 +70,29 @@ func StartServer() {
 
 	authorized := r.Group("/", authenticate())
 
-	r.POST("/users", createUser)
-	r.POST("/sessions", createSession)
+	r.POST("/user", createUser)
+	r.POST("/session", createSession)
 
-	authorized.POST("/boards", createBoard)
+	authorized.POST("/board", createBoard)
 	authorized.GET("/boards", indexBoard)
 	authorized.GET("/board/:boardID", showBoard)
-	authorized.PATCH("/boards/:boardID", updateBoard)
+	authorized.PATCH("/board/:boardID", updateBoard)
 	authorized.DELETE("/board/:boardID", deleteBoard)
 
-	authorized.POST("/board/:boardID/labels", createLabel)
+	authorized.POST("/board/:boardID/label", createLabel)
 	authorized.GET("/board/:boardID/labels", indexLabel)
-	authorized.PATCH("/labels/:labelID", updateLabel)
+	authorized.PATCH("/label/:labelID", updateLabel)
 	authorized.DELETE("/label/:labelID", deleteLabel)
 
-	authorized.POST("/board/:boardID/lists", createList)
-	authorized.PATCH("/lists/:listID", updateList)
+	authorized.POST("/board/:boardID/list", createList)
+	authorized.PATCH("/list/:listID", updateList)
 	authorized.DELETE("/list/:listID", deleteList)
 
-	authorized.POST("/list/:listID/cards", createCard)
-	authorized.PATCH("/cards/:cardID", updateCard)
+	authorized.POST("/list/:listID/card", createCard)
+	authorized.PATCH("/card/:cardID", updateCard)
 	authorized.DELETE("/card/:cardID", deleteCard)
 
-	authorized.POST("/card/:cardID/card_labels", createCardLabel)
+	authorized.POST("/card/:cardID/card_label", createCardLabel)
 	authorized.DELETE("/card/:cardID/card_label", deleteCardLabel)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
