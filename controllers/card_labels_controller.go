@@ -10,7 +10,7 @@ import (
 )
 
 type cardLabelParams struct {
-	LabelID uint `json:"label_id" binding:"required"`
+	LabelID uint `json:"label_id" form:"label_id" binding:"required"`
 }
 
 func createCardLabel(c *gin.Context) {
@@ -41,4 +41,32 @@ func createCardLabel(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"label": l})
+}
+
+func deleteCardLabel(c *gin.Context) {
+	var p cardLabelParams
+
+	if err := c.ShouldBindQuery(&p); err != nil {
+		log.Printf("fail to bind Query: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	cl := models.CardLabel{
+		LabelID: p.LabelID,
+		CardID:  getIDParam(c, "cardID"),
+	}
+
+	if cl.Find(currentUser(c).ID).RecordNotFound() {
+		log.Println("uid does not match board.user_id associated with the card or label")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		return
+	}
+
+	if err := cl.Delete(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
