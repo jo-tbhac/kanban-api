@@ -5,6 +5,7 @@ import (
 
 	"github.com/jo-tbhac/kanban-api/controllers"
 	"github.com/jo-tbhac/kanban-api/db"
+	"github.com/jo-tbhac/kanban-api/migration"
 )
 
 func main() {
@@ -14,6 +15,8 @@ func main() {
 	if os.Getenv("GIN_MODE") == "debug" {
 		db.LogMode(true)
 	}
+
+	migration.Migrate()
 
 	controllers.StartServer()
 }

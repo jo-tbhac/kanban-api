@@ -11,18 +11,12 @@ import (
 
 type List struct {
 	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"-"`
-	UpdatedAt time.Time  `json:"-"`
+	CreatedAt time.Time  `json:"-" gorm:"not null"`
+	UpdatedAt time.Time  `json:"-" gorm:"not null"`
 	DeletedAt *time.Time `json:"-"`
-	Name      string     `json:"name" validate:"required,max=50"`
-	BoardID   uint       `json:"board_id"`
+	Name      string     `json:"name" validate:"required,max=50" gorm:"not null;size:50"`
+	BoardID   uint       `json:"board_id" gorm:"not null"`
 	Cards     []Card     `json:"cards"`
-}
-
-func init() {
-	db := db.Get()
-	db.AutoMigrate(&List{})
-	db.Model(&List{}).AddForeignKey("board_id", "boards(id)", "RESTRICT", "RESTRICT")
 }
 
 func selectListColumn(db *gorm.DB) *gorm.DB {
