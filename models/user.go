@@ -14,19 +14,13 @@ import (
 
 type User struct {
 	ID             uint      `json:"id"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	Name           string    `json:"name"`
-	Email          string    `json:"email"`
-	PasswordDigest string    `json:"password_digest"`
-	RememberToken  string    `json:"remember_token"`
+	CreatedAt      time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt      time.Time `json:"updated_at" gorm:"not null"`
+	Name           string    `json:"name" gorm:"not null"`
+	Email          string    `json:"email" gorm:"unique;not null"`
+	PasswordDigest string    `json:"password_digest" gorm:"not null"`
+	RememberToken  string    `json:"remember_token" gorm:"not null"`
 	Boards         []Board   `json:"boards" gorm:"foreignkey:UserID"`
-}
-
-func init() {
-	db := db.Get()
-	db.AutoMigrate(&User{})
-	db.Model(&User{}).AddUniqueIndex("idx_users_email", "email")
 }
 
 func (u *User) Create(name, email, pw string) []validator.ValidationError {

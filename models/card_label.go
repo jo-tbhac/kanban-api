@@ -2,7 +2,6 @@ package models
 
 import (
 	"log"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/jo-tbhac/kanban-api/db"
@@ -10,21 +9,8 @@ import (
 )
 
 type CardLabel struct {
-	ID        uint
-	CreatedAt time.Time
-	CardID    uint
-	LabelID   uint
-}
-
-func init() {
-	db := db.Get()
-	db.AutoMigrate(&CardLabel{})
-	db.Model(&CardLabel{}).AddForeignKey("card_id", "cards(id)", "RESTRICT", "RESTRICT")
-	db.Model(&CardLabel{}).AddForeignKey("label_id", "labels(id)", "RESTRICT", "RESTRICT")
-}
-
-func selectCardLabelColumn(db *gorm.DB) *gorm.DB {
-	return db.Select("id, card_id, label_id")
+	CardID  uint `gorm:"primary_key;auto_increment:false"`
+	LabelID uint `gorm:"primary_key;auto_increment:false"`
 }
 
 func (cl *CardLabel) ValidateUID(uid uint) bool {
@@ -58,8 +44,7 @@ func (cl *CardLabel) Create() (Label, []validator.ValidationError) {
 func (cl *CardLabel) Find(uid uint) *gorm.DB {
 	db := db.Get()
 
-	return db.Scopes(selectCardLabelColumn).
-		Joins("Join labels ON card_labels.label_id = labels.id").
+	return db.Joins("Join labels ON card_labels.label_id = labels.id").
 		Joins("Join boards ON labels.board_id = boards.id").
 		Where("boards.user_id = ?", uid).
 		Where("card_labels.label_id = ?", cl.LabelID).

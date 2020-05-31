@@ -10,21 +10,15 @@ import (
 
 type Board struct {
 	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"-"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	CreatedAt time.Time  `json:"-" gorm:"not null"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"not null"`
 	DeletedAt *time.Time `json:"-"`
-	Name      string     `json:"name" validate:"required,max=50"`
-	UserID    uint       `json:"-"`
+	Name      string     `json:"name" validate:"required,max=50" gorm:"size:50;not null"`
+	UserID    uint       `json:"-" gorm:"not null"`
 	Lists     []List     `json:"lists"`
 }
 
 type Boards []Board
-
-func init() {
-	db := db.Get()
-	db.AutoMigrate(&Board{})
-	db.Model(&Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-}
 
 func selectBoardColumn(db *gorm.DB) *gorm.DB {
 	return db.Select("id, updated_at, name, user_id")

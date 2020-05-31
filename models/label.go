@@ -11,21 +11,15 @@ import (
 
 type Label struct {
 	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"-"`
-	UpdatedAt time.Time  `json:"-"`
+	CreatedAt time.Time  `json:"-" gorm:"not null"`
+	UpdatedAt time.Time  `json:"-" gorm:"not null"`
 	DeletedAt *time.Time `json:"-"`
-	Name      string     `json:"name" validate:"required,max=50"`
-	Color     string     `json:"color" validate:"required,hexcolor"`
-	BoardID   uint       `json:"-"`
+	Name      string     `json:"name" validate:"required,max=50" gorm:"not null;size:50"`
+	Color     string     `json:"color" validate:"required,hexcolor" gorm:"not null;size:7"`
+	BoardID   uint       `json:"-" gorm:"not null"`
 }
 
 type Labels []Label
-
-func init() {
-	db := db.Get()
-	db.AutoMigrate(&Label{})
-	db.Model(&Label{}).AddForeignKey("board_id", "boards(id)", "RESTRICT", "RESTRICT")
-}
 
 func selectLabelColumn(db *gorm.DB) *gorm.DB {
 	return db.Select("labels.id, labels.name, labels.color, labels.board_id")
