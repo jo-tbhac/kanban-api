@@ -1,11 +1,11 @@
-package controllers
+package handler
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/repository"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -13,7 +13,15 @@ type cardLabelParams struct {
 	LabelID uint `json:"label_id" form:"label_id" binding:"required"`
 }
 
-func createCardLabel(c *gin.Context) {
+type CardLabelHandler struct {
+	repository repository.CardLabelRepository
+}
+
+func NewCardLabelHandler(r *repository.CardLabelRepository) *CardlabelHandler {
+	return &CardLabelHandler{}
+}
+
+func (h *CardLabelHandler) createCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -22,18 +30,15 @@ func createCardLabel(c *gin.Context) {
 		return
 	}
 
-	cl := models.CardLabel{
-		LabelID: p.LabelID,
-		CardID:  getIDParam(c, "cardID"),
-	}
+	cid := getIDParam(c, "cardID")
 
-	if !cl.ValidateUID(currentUser(c).ID) {
+	if err := h.repository.ValidateUID(p.LabelID, cid, currentUserID(c)); err != nil {
 		log.Println("uid does not match board.user_id associated with the card or label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	l, err := cl.Create()
+	l, err := cl.Create(p.LabelID, cid)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
@@ -43,7 +48,7 @@ func createCardLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func deleteCardLabel(c *gin.Context) {
+func (h *CardLabelHandler) deleteCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
 	if err := c.ShouldBindQuery(&p); err != nil {
@@ -52,19 +57,16 @@ func deleteCardLabel(c *gin.Context) {
 		return
 	}
 
-	cl := models.CardLabel{
-		LabelID: p.LabelID,
-		CardID:  getIDParam(c, "cardID"),
-	}
+	cl, err := h.repository.Find(currentUserID(c))
 
-	if cl.Find(currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card or label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	if err := cl.Delete(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+	if err := h.repository.Delete(cl); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 

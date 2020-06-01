@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/repository"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -13,7 +13,15 @@ type listParams struct {
 	Name string `json:"name"`
 }
 
-func createList(c *gin.Context) {
+type ListlHandler struct {
+	repository repository.ListRepository
+}
+
+func NewListHandler(r *repository.ListRepository) *ListlHandler {
+	return &ListlHandler{}
+}
+
+func (h ListlHandler) createList(c *gin.Context) {
 	var p listParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -24,18 +32,15 @@ func createList(c *gin.Context) {
 
 	bid := getIDParam(c, "boardID")
 
-	if !models.ValidateUID(uint(bid), currentUser(c).ID) {
-		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("board_id is invalid")})
+	if err := h.repository.ValidateUID(bid, currentUserID(c)) {
+		log.Println("uid does not match board.user_id associated with the list")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	l := models.List{
-		Name:    p.Name,
-		BoardID: bid,
-	}
+	l, err := h.repository.Create(p.Name, bid)
 
-	if err := l.Create(); err != nil {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
@@ -43,13 +48,13 @@ func createList(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"list": l})
 }
 
-func updateList(c *gin.Context) {
+func (h ListlHandler) updateList(c *gin.Context) {
 	id := getIDParam(c, "listID")
-	var l models.List
+	l, err := h.repository.Find(id, currentUserID(c))
 
-	if l.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the list")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
@@ -61,9 +66,7 @@ func updateList(c *gin.Context) {
 		return
 	}
 
-	l.Name = p.Name
-
-	if err := l.Update(); err != nil {
+	if err := h.repository.Update(l, p.Name); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
@@ -71,17 +74,17 @@ func updateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func deleteList(c *gin.Context) {
+func (h ListlHandler) deleteList(c *gin.Context) {
 	id := getIDParam(c, "listID")
-	var l models.List
+	l, err := h.repository.Find(id, currentUserID(c))
 
-	if l.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the list")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	if err := l.Delete(); err != nil {
+	if err := h.repository.Delete(l); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}

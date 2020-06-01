@@ -1,11 +1,11 @@
-package controllers
+package handler
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/repository"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -14,7 +14,15 @@ type labelParams struct {
 	Color string `json:"color"`
 }
 
-func createLabel(c *gin.Context) {
+type LabelHandler struct {
+	repository repository.LabelRepository
+}
+
+func NewLabelHandler(r *repository.LabelRepository) *LabelHandler {
+	return &LabelHandler{}
+}
+
+func (h LabelHandler) createLabel(c *gin.Context) {
 	var p labelParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -25,19 +33,15 @@ func createLabel(c *gin.Context) {
 
 	bid := getIDParam(c, "boardID")
 
-	if !models.ValidateUID(bid, currentUser(c).ID) {
+	if err := h.repository.ValidateUID(bid, currentUserID(c)); err != nil {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("board_id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	l := models.Label{
-		Name:    p.Name,
-		Color:   p.Color,
-		BoardID: bid,
-	}
+	l, err := h.repository.Create(p.Name, p.Color, bid)
 
-	if err := l.Create(); err != nil {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
@@ -45,13 +49,13 @@ func createLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func updateLabel(c *gin.Context) {
+func (h LabelHandler) updateLabel(c *gin.Context) {
 	id := getIDParam(c, "labelID")
-	var l models.Label
+	l, err := h.repository.Find(id, currentUserID(c))
 
-	if l.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
@@ -63,10 +67,7 @@ func updateLabel(c *gin.Context) {
 		return
 	}
 
-	l.Name = p.Name
-	l.Color = p.Color
-
-	if err := l.Update(); err != nil {
+	if err := h.repository.Update(l, p.Name, p.Color); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
@@ -74,26 +75,24 @@ func updateLabel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func indexLabel(c *gin.Context) {
+func (h LabelHandler) indexLabel(c *gin.Context) {
 	bid := getIDParam(c, "boardID")
-	var ls models.Labels
-
-	ls.GetAll(bid, currentUser(c).ID)
+	ls := h.repository.GetAll(bid, currentUserID(c))
 
 	c.JSON(http.StatusOK, gin.H{"labels": ls})
 }
 
-func deleteLabel(c *gin.Context) {
+func (h LabelHandler) deleteLabel(c *gin.Context) {
 	id := getIDParam(c, "labelID")
-	var l models.Label
+	l, err := h.repository.Find(id, currentUserID(c))
 
-	if l.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the label")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	if err := l.Delete(); err != nil {
+	if err := h.repository.Delete(l); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}

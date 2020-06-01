@@ -1,11 +1,11 @@
-package controllers
+package handler
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/models"
+	"github.com/jo-tbhac/kanban-api/repository"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -14,7 +14,15 @@ type cardParams struct {
 	Description string `json:"description"`
 }
 
-func createCard(c *gin.Context) {
+type CardHandler struct {
+	repository repository.CardRepository
+}
+
+func NewCardHandler(r *repository.CardRepository) *CardHandler {
+	return &CardHandler{}
+}
+
+func (h CardHandler) createCard(c *gin.Context) {
 	var p cardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -23,18 +31,17 @@ func createCard(c *gin.Context) {
 		return
 	}
 
-	ca := models.Card{
-		Title:  p.Title,
-		ListID: getIDParam(c, "listID"),
-	}
+	lid := getIDParam(c, "listID")
 
-	if !ca.ValidateUID(currentUser(c).ID) {
+	if err := h.repository.ValidateUID(lid, currentUserID(c)); err != nil {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	if err := ca.Create(); err != nil {
+	ca, err := h.repository.Create(p.Title, lid)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
@@ -42,13 +49,13 @@ func createCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"card": ca})
 }
 
-func updateCard(c *gin.Context) {
+func (h CardHandler) updateCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
-	var ca models.Card
+	ca, err := h.repository.Find(id, currentUserID(c))
 
-	if ca.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
@@ -60,15 +67,7 @@ func updateCard(c *gin.Context) {
 		return
 	}
 
-	if p.Title != "" {
-		ca.Title = p.Title
-	}
-
-	if p.Description != "" {
-		ca.Description = p.Description
-	}
-
-	if err := ca.Update(); err != nil {
+	if err := h.repository.Update(ca, p.Title, p.Description); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
@@ -76,17 +75,17 @@ func updateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"card": ca})
 }
 
-func deleteCard(c *gin.Context) {
+func (h CardHandler) deleteCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
-	var ca models.Card
+	ca, err := h.repository.Find(id, currentUserID(c))
 
-	if ca.Find(id, currentUser(c).ID).RecordNotFound() {
+	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("id is invalid")})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	if err := ca.Delete(); err != nil {
+	if err := h.repository.Delete(ca); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}

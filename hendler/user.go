@@ -1,10 +1,10 @@
-package controllers
+package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/models"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -15,7 +15,15 @@ type userParams struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
 }
 
-func createUser(c *gin.Context) {
+type UserHandler struct {
+	repository repository.UserRepository
+}
+
+func NewUserHandler(r *repository.UserRepository) *UserHandler {
+	return &UserHandler{}
+}
+
+func (h UserHandler) createUser(c *gin.Context) {
 	var p userParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -23,15 +31,25 @@ func createUser(c *gin.Context) {
 		return
 	}
 
-	var u models.User
+	passwordDigest, err := h.repository.EncryptPassword(p.Password)
 
-	if err := u.Create(p.Name, p.Email, p.Password); err != nil {
+	if err != nil {
+		log.Printf("fail to encrypted password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"errors": validator.NewValidationErrors("internal server error")})
+		return
+	}
+
+	_, err := h.repository.Create(p.Name, p.Email, passwordDigest)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors(err.Error())})
+	u, err := h.repository.SignIn(p.Email, p.Password)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
