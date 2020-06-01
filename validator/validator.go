@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -62,6 +63,12 @@ func FormattedValidationError(err error) []ValidationError {
 }
 
 func FormattedMySQLError(err error) []ValidationError {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("panic: %v", err)
+		}
+	}()
+
 	switch regexpMySQLErrorCode.FindStringSubmatch(err.Error())[1] {
 	case "1062":
 		v := strings.ReplaceAll(regexpMySQLErrorValue.FindString(err.Error()), "'", "")
