@@ -17,7 +17,7 @@ type CardLabelHandler struct {
 	repository repository.CardLabelRepository
 }
 
-func NewCardLabelHandler(r *repository.CardLabelRepository) *CardlabelHandler {
+func NewCardLabelHandler(r *repository.CardLabelRepository) *CardLabelHandler {
 	return &CardLabelHandler{}
 }
 
@@ -38,7 +38,7 @@ func (h *CardLabelHandler) createCardLabel(c *gin.Context) {
 		return
 	}
 
-	l, err := cl.Create(p.LabelID, cid)
+	l, err := h.repository.Create(p.LabelID, cid)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
@@ -57,7 +57,9 @@ func (h *CardLabelHandler) deleteCardLabel(c *gin.Context) {
 		return
 	}
 
-	cl, err := h.repository.Find(currentUserID(c))
+	cid := getIDParam(c, "cardID")
+
+	cl, err := h.repository.Find(p.LabelID, cid, currentUserID(c))
 
 	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card or label")

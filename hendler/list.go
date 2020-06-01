@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"log"
@@ -32,7 +32,7 @@ func (h ListlHandler) createList(c *gin.Context) {
 
 	bid := getIDParam(c, "boardID")
 
-	if err := h.repository.ValidateUID(bid, currentUserID(c)) {
+	if err := h.repository.ValidateUID(bid, currentUserID(c)); err != nil {
 		log.Println("uid does not match board.user_id associated with the list")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return

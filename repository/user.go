@@ -68,11 +68,16 @@ func (r *UserRepository) IsSignedIn(token string) (*entity.User, bool) {
 	return u, true
 }
 
-func (r *UserRepository) EncryptPassword(password string) (digest string, err error) {
+func (r *UserRepository) EncryptPassword(password string) (string, []validator.ValidationError) {
 	h, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	digest = string(h)
 
-	return
+	if err != nil {
+		return "", validator.NewValidationErrors("internal server error")
+	}
+
+	digest := string(h)
+
+	return digest, nil
 }
 
 func newSessionToken() (string, error) {

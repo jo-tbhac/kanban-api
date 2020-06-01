@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jo-tbhac/kanban-api/repository"
 	"github.com/jo-tbhac/kanban-api/validator"
 )
 
@@ -35,13 +36,11 @@ func (h UserHandler) createUser(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("fail to encrypted password: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"errors": validator.NewValidationErrors("internal server error")})
+		c.JSON(http.StatusInternalServerError, gin.H{"errors": err})
 		return
 	}
 
-	_, err := h.repository.Create(p.Name, p.Email, passwordDigest)
-
-	if err != nil {
+	if _, err := h.repository.Create(p.Name, p.Email, passwordDigest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
