@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/repository"
-	"github.com/jo-tbhac/kanban-api/validator"
+
+	"local.packages/repository"
+	"local.packages/validator"
 )
 
 type cardLabelParams struct {

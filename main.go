@@ -5,10 +5,12 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/config"
-	"github.com/jo-tbhac/kanban-api/db"
-	"github.com/jo-tbhac/kanban-api/handler"
-	"github.com/jo-tbhac/kanban-api/migration"
+
+	"local.packages/config"
+	"local.packages/db"
+	"local.packages/handler"
+	"local.packages/migration"
+	"local.packages/repository"
 )
 
 var (

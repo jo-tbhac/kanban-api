@@ -5,23 +5,24 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/repository"
-	"github.com/jo-tbhac/kanban-api/validator"
+
+	"local.packages/repository"
+	"local.packages/validator"
 )
 
 type listParams struct {
 	Name string `json:"name"`
 }
 
-type ListlHandler struct {
+type ListHandler struct {
 	repository repository.ListRepository
 }
 
-func NewListHandler(r *repository.ListRepository) *ListlHandler {
-	return &ListlHandler{}
+func NewListHandler(r *repository.ListRepository) *ListHandler {
+	return &ListHandler{}
 }
 
-func (h ListlHandler) createList(c *gin.Context) {
+func (h ListHandler) createList(c *gin.Context) {
 	var p listParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -48,7 +49,7 @@ func (h ListlHandler) createList(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"list": l})
 }
 
-func (h ListlHandler) updateList(c *gin.Context) {
+func (h ListHandler) updateList(c *gin.Context) {
 	id := getIDParam(c, "listID")
 	l, err := h.repository.Find(id, currentUserID(c))
 
@@ -74,7 +75,7 @@ func (h ListlHandler) updateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func (h ListlHandler) deleteList(c *gin.Context) {
+func (h ListHandler) deleteList(c *gin.Context) {
 	id := getIDParam(c, "listID")
 	l, err := h.repository.Find(id, currentUserID(c))
 

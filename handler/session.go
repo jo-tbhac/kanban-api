@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/validator"
+
+	"local.packages/validator"
 )
 
 type sessionParams struct {

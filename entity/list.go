@@ -3,7 +3,7 @@ package entity
 import (
 	"time"
 
-	"github.com/jo-tbhac/kanban-api/validator"
+	"local.packages/validator"
 )
 
 type List struct {

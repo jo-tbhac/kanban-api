@@ -6,9 +6,10 @@ import (
 	"log"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jo-tbhac/kanban-api/entity"
-	"github.com/jo-tbhac/kanban-api/validator"
 	"golang.org/x/crypto/bcrypt"
+
+	"local.packages/entity"
+	"local.packages/validator"
 )
 
 type UserRepository struct {

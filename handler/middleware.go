@@ -8,7 +8,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jo-tbhac/kanban-api/validator"
+
+	"local.packages/validator"
 )
 
 func (h UserHandler) Authenticate() gin.HandlerFunc {

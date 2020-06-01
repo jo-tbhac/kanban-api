@@ -2,8 +2,9 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/jo-tbhac/kanban-api/entity"
-	"github.com/jo-tbhac/kanban-api/validator"
+
+	"local.packages/entity"
+	"local.packages/validator"
 )
 
 type BoardRepository struct {
