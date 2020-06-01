@@ -3,10 +3,10 @@ package db
 import (
 	"log"
 
-	"github.com/jo-tbhac/kanban-api/config"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+
+	"local.packages/config"
 )
 
 var (

@@ -1,12 +1,11 @@
-package controllers
+package handler
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/jo-tbhac/kanban-api/models"
-	"github.com/jo-tbhac/kanban-api/validator"
+	"local.packages/validator"
 )
 
 type sessionParams struct {
@@ -14,7 +13,7 @@ type sessionParams struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func createSession(c *gin.Context) {
+func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -22,10 +21,10 @@ func createSession(c *gin.Context) {
 		return
 	}
 
-	var u models.User
+	u, err := h.repository.SignIn(p.Email, p.Password)
 
-	if err := u.SignIn(p.Email, p.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors(err.Error())})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
