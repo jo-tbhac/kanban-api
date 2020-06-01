@@ -15,14 +15,14 @@ type listParams struct {
 }
 
 type ListHandler struct {
-	repository repository.ListRepository
+	repository *repository.ListRepository
 }
 
 func NewListHandler(r *repository.ListRepository) *ListHandler {
-	return &ListHandler{}
+	return &ListHandler{repository: r}
 }
 
-func (h ListHandler) createList(c *gin.Context) {
+func (h ListHandler) CreateList(c *gin.Context) {
 	var p listParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -49,7 +49,7 @@ func (h ListHandler) createList(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"list": l})
 }
 
-func (h ListHandler) updateList(c *gin.Context) {
+func (h ListHandler) UpdateList(c *gin.Context) {
 	id := getIDParam(c, "listID")
 	l, err := h.repository.Find(id, currentUserID(c))
 
@@ -75,7 +75,7 @@ func (h ListHandler) updateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func (h ListHandler) deleteList(c *gin.Context) {
+func (h ListHandler) DeleteList(c *gin.Context) {
 	id := getIDParam(c, "listID")
 	l, err := h.repository.Find(id, currentUserID(c))
 

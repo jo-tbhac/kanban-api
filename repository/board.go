@@ -35,7 +35,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 			return db.Scopes(selectWithLabelAssociationKey)
 		}).
 		Where("user_id = ?", uid).
-		First(b, id)
+		First(&b, id)
 
 	if rslt.RecordNotFound() {
 		return &b, validator.NewValidationErrors("invalid parameters")

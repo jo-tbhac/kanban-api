@@ -16,14 +16,14 @@ type cardParams struct {
 }
 
 type CardHandler struct {
-	repository repository.CardRepository
+	repository *repository.CardRepository
 }
 
 func NewCardHandler(r *repository.CardRepository) *CardHandler {
-	return &CardHandler{}
+	return &CardHandler{repository: r}
 }
 
-func (h CardHandler) createCard(c *gin.Context) {
+func (h CardHandler) CreateCard(c *gin.Context) {
 	var p cardParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -50,7 +50,7 @@ func (h CardHandler) createCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"card": ca})
 }
 
-func (h CardHandler) updateCard(c *gin.Context) {
+func (h CardHandler) UpdateCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
 	ca, err := h.repository.Find(id, currentUserID(c))
 
@@ -76,7 +76,7 @@ func (h CardHandler) updateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"card": ca})
 }
 
-func (h CardHandler) deleteCard(c *gin.Context) {
+func (h CardHandler) DeleteCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
 	ca, err := h.repository.Find(id, currentUserID(c))
 

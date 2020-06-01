@@ -13,7 +13,7 @@ type sessionParams struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (h UserHandler) createSession(c *gin.Context) {
+func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {

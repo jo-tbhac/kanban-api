@@ -46,32 +46,32 @@ func startServer() {
 
 	r.Use(handler.MapIDParamsToContext())
 
-	authorized := r.Group("/", handler.Authenticate())
+	authorized := r.Group("/", userHandler.Authenticate())
 
-	r.POST("/user", userHandler.createUser)
-	r.POST("/session", userHandler.createSession)
+	r.POST("/user", userHandler.CreateUser)
+	r.POST("/session", userHandler.CreateSession)
 
-	authorized.POST("/board", boardHandler.createBoard)
-	authorized.GET("/boards", boardHandler.indexBoard)
-	authorized.GET("/board/:boardID", boardHandler.showBoard)
-	authorized.PATCH("/board/:boardID", boardHandler.updateBoard)
-	authorized.DELETE("/board/:boardID", boardHandler.deleteBoard)
+	authorized.POST("/board", boardHandler.CreateBoard)
+	authorized.GET("/boards", boardHandler.IndexBoard)
+	authorized.GET("/board/:boardID", boardHandler.ShowBoard)
+	authorized.PATCH("/board/:boardID", boardHandler.UpdateBoard)
+	authorized.DELETE("/board/:boardID", boardHandler.DeleteBoard)
 
-	authorized.POST("/board/:boardID/label", labelHandler.createLabel)
-	authorized.GET("/board/:boardID/labels", labelHandler.indexLabel)
-	authorized.PATCH("/label/:labelID", labelHandler.updateLabel)
-	authorized.DELETE("/label/:labelID", labelHandler.deleteLabel)
+	authorized.POST("/board/:boardID/label", labelHandler.CreateLabel)
+	authorized.GET("/board/:boardID/labels", labelHandler.IndexLabel)
+	authorized.PATCH("/label/:labelID", labelHandler.UpdateLabel)
+	authorized.DELETE("/label/:labelID", labelHandler.DeleteLabel)
 
-	authorized.POST("/board/:boardID/list", listHandler.createList)
-	authorized.PATCH("/list/:listID", listHandler.updateList)
-	authorized.DELETE("/list/:listID", listHandler.deleteList)
+	authorized.POST("/board/:boardID/list", listHandler.CreateList)
+	authorized.PATCH("/list/:listID", listHandler.UpdateList)
+	authorized.DELETE("/list/:listID", listHandler.DeleteList)
 
-	authorized.POST("/list/:listID/card", cardHandler.createCard)
-	authorized.PATCH("/card/:cardID", cardHandler.updateCard)
-	authorized.DELETE("/card/:cardID", cardHandler.deleteCard)
+	authorized.POST("/list/:listID/card", cardHandler.CreateCard)
+	authorized.PATCH("/card/:cardID", cardHandler.UpdateCard)
+	authorized.DELETE("/card/:cardID", cardHandler.DeleteCard)
 
-	authorized.POST("/card/:cardID/card_label", cardLabelHandler.createCardLabel)
-	authorized.DELETE("/card/:cardID/card_label", cardLabelHandler.deleteCardLabel)
+	authorized.POST("/card/:cardID/card_label", cardLabelHandler.CreateCardLabel)
+	authorized.DELETE("/card/:cardID/card_label", cardLabelHandler.DeleteCardLabel)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

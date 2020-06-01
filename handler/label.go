@@ -16,14 +16,14 @@ type labelParams struct {
 }
 
 type LabelHandler struct {
-	repository repository.LabelRepository
+	repository *repository.LabelRepository
 }
 
 func NewLabelHandler(r *repository.LabelRepository) *LabelHandler {
-	return &LabelHandler{}
+	return &LabelHandler{repository: r}
 }
 
-func (h LabelHandler) createLabel(c *gin.Context) {
+func (h LabelHandler) CreateLabel(c *gin.Context) {
 	var p labelParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
@@ -50,7 +50,7 @@ func (h LabelHandler) createLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func (h LabelHandler) updateLabel(c *gin.Context) {
+func (h LabelHandler) UpdateLabel(c *gin.Context) {
 	id := getIDParam(c, "labelID")
 	l, err := h.repository.Find(id, currentUserID(c))
 
@@ -76,14 +76,14 @@ func (h LabelHandler) updateLabel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"label": l})
 }
 
-func (h LabelHandler) indexLabel(c *gin.Context) {
+func (h LabelHandler) IndexLabel(c *gin.Context) {
 	bid := getIDParam(c, "boardID")
 	ls := h.repository.GetAll(bid, currentUserID(c))
 
 	c.JSON(http.StatusOK, gin.H{"labels": ls})
 }
 
-func (h LabelHandler) deleteLabel(c *gin.Context) {
+func (h LabelHandler) DeleteLabel(c *gin.Context) {
 	id := getIDParam(c, "labelID")
 	l, err := h.repository.Find(id, currentUserID(c))
 

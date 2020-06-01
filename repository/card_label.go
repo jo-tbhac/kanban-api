@@ -45,7 +45,7 @@ func (r *CardLabelRepository) Create(lid, cid uint) (*entity.Label, []validator.
 	}
 
 	if err := r.db.Create(cl).Error; err != nil {
-		return &l, validator.FormattedValidationError(err)
+		return &l, validator.FormattedMySQLError(err)
 	}
 
 	r.db.Model(cl).Related(&l)

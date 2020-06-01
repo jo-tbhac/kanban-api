@@ -18,14 +18,14 @@ type userParams struct {
 }
 
 type UserHandler struct {
-	repository repository.UserRepository
+	repository *repository.UserRepository
 }
 
 func NewUserHandler(r *repository.UserRepository) *UserHandler {
-	return &UserHandler{}
+	return &UserHandler{repository: r}
 }
 
-func (h UserHandler) createUser(c *gin.Context) {
+func (h UserHandler) CreateUser(c *gin.Context) {
 	var p userParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {

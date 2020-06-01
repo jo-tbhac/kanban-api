@@ -11,22 +11,22 @@ import (
 )
 
 type cardLabelParams struct {
-	LabelID uint `json:"label_id" form:"label_id" binding:"required"`
+	LabelID uint `form:"label_id" binding:"required"`
 }
 
 type CardLabelHandler struct {
-	repository repository.CardLabelRepository
+	repository *repository.CardLabelRepository
 }
 
 func NewCardLabelHandler(r *repository.CardLabelRepository) *CardLabelHandler {
-	return &CardLabelHandler{}
+	return &CardLabelHandler{repository: r}
 }
 
-func (h *CardLabelHandler) createCardLabel(c *gin.Context) {
+func (h *CardLabelHandler) CreateCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
-	if err := c.ShouldBindJSON(&p); err != nil {
-		log.Printf("fail to bind JSON: %v", err)
+	if err := c.ShouldBindQuery(&p); err != nil {
+		log.Printf("fail to bind Query: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
@@ -49,7 +49,7 @@ func (h *CardLabelHandler) createCardLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
-func (h *CardLabelHandler) deleteCardLabel(c *gin.Context) {
+func (h *CardLabelHandler) DeleteCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
 	if err := c.ShouldBindQuery(&p); err != nil {
