@@ -43,7 +43,7 @@ func (h BoardHandler) CreateBoard(c *gin.Context) {
 
 func (h BoardHandler) UpdateBoard(c *gin.Context) {
 	id := getIDParam(c, "boardID")
-	b, err := h.repository.Find(id, currentUserID(c))
+	b, err := h.repository.FindWithoutPreload(id, currentUserID(c))
 
 	if err != nil {
 		log.Println("uid does not match board.user_id")
