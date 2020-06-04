@@ -220,52 +220,50 @@ func TestShouldCreateBoard(t *testing.T) {
 	assert.Equal(t, b.UserID, userID)
 }
 
-func TestShouldNotCreateBoardWhenNameIsBlank(t *testing.T) {
-	db, mock := utils.NewDBMock(t)
-	defer db.Close()
-
-	r := NewBoardRepository(db)
-
-	mock.ExpectBegin()
-
-	name := ""
-	userID := uint(1)
-
-	_, err := r.Create(name, userID)
-
-	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+func TestShouldNotCreateBoard(t *testing.T) {
+	type testCase struct {
+		testName      string
+		boardName     string
+		userID        uint
+		expectedError string
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("there were unfulfilled expectations: %v", err)
+	testCases := []testCase{
+		{
+			testName:      "when without a name",
+			boardName:     "",
+			userID:        uint(1),
+			expectedError: "Name must exist",
+		}, {
+			testName:      "when name size more than 51 characters",
+			boardName:     strings.Repeat("a", 51),
+			userID:        uint(1),
+			expectedError: "Name is too long (maximum is 50 characters)",
+		},
 	}
 
-	assert.Equal(t, err[0].Text, "Name must exist")
-}
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			db, mock := utils.NewDBMock(t)
+			defer db.Close()
 
-func TestShouldNotCreateBoardWhenNameSizeMoreThan51Character(t *testing.T) {
-	db, mock := utils.NewDBMock(t)
-	defer db.Close()
+			r := NewBoardRepository(db)
 
-	r := NewBoardRepository(db)
+			mock.ExpectBegin()
 
-	mock.ExpectBegin()
+			_, err := r.Create(tc.boardName, tc.userID)
 
-	name := strings.Repeat("a", 51)
-	userID := uint(1)
+			if err == nil {
+				t.Errorf("was expected an error, but did not recieve it. %v", err)
+			}
 
-	_, err := r.Create(name, userID)
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Fatalf("there were unfulfilled expectations: %v", err)
+			}
 
-	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+			assert.Equal(t, err[0].Text, tc.expectedError)
+		})
 	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("there were unfulfilled expectations: %v", err)
-	}
-
-	assert.Equal(t, err[0].Text, "Name is too long (maximum is 50 characters)")
 }
 
 func TestShouldUpdateBoard(t *testing.T) {
@@ -300,60 +298,51 @@ func TestShouldUpdateBoard(t *testing.T) {
 	assert.Equal(t, b.Name, name)
 }
 
-func TestShouldNotUpdateBoardWhenNameIsBlank(t *testing.T) {
-	db, mock := utils.NewDBMock(t)
-	defer db.Close()
-
-	r := NewBoardRepository(db)
-
-	mock.ExpectBegin()
-
-	b := &entity.Board{
-		ID:   uint(1),
-		Name: "sample_board",
+func TestShouldNotUpdateBoard(t *testing.T) {
+	type testCase struct {
+		testName      string
+		boardName     string
+		expectedError string
 	}
 
-	name := ""
-
-	err := r.Update(b, name)
-
-	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+	testCases := []testCase{
+		{
+			testName:      "when without a name",
+			boardName:     "",
+			expectedError: "Name must exist",
+		}, {
+			testName:      "when name size more than 51 characters",
+			boardName:     strings.Repeat("a", 51),
+			expectedError: "Name is too long (maximum is 50 characters)",
+		},
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("there were unfulfilled expectations: %v", err)
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			db, mock := utils.NewDBMock(t)
+			defer db.Close()
+
+			r := NewBoardRepository(db)
+			b := &entity.Board{
+				ID:   uint(1),
+				Name: "sample_board",
+			}
+
+			mock.ExpectBegin()
+
+			err := r.Update(b, tc.boardName)
+
+			if err == nil {
+				t.Errorf("was expected an error, but did not recieve it. %v", err)
+			}
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Fatalf("there were unfulfilled expectations: %v", err)
+			}
+
+			assert.Equal(t, err[0].Text, tc.expectedError)
+		})
 	}
-
-	assert.Equal(t, err[0].Text, "Name must exist")
-}
-
-func TestShouldNotUpdateBoardWhenNameSizeMoreThan51Character(t *testing.T) {
-	db, mock := utils.NewDBMock(t)
-	defer db.Close()
-
-	r := NewBoardRepository(db)
-
-	mock.ExpectBegin()
-
-	b := &entity.Board{
-		ID:   uint(1),
-		Name: "sample_board",
-	}
-
-	name := strings.Repeat("a", 51)
-
-	err := r.Update(b, name)
-
-	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("there were unfulfilled expectations: %v", err)
-	}
-
-	assert.Equal(t, err[0].Text, "Name is too long (maximum is 50 characters)")
 }
 
 func TestShouldSuccessfullyDeleteBoard(t *testing.T) {
