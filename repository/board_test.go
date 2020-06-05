@@ -391,7 +391,7 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 	err := r.Delete(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but recieved it. %v", err)
+		t.Errorf("was expected an error, but did not recieved it. %v", err)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
