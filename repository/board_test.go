@@ -235,7 +235,7 @@ func TestShouldNotCreateBoard(t *testing.T) {
 			userID:        uint(1),
 			expectedError: "Name must exist",
 		}, {
-			testName:      "when name size more than 51 characters",
+			testName:      "when name size more than 50 characters",
 			boardName:     strings.Repeat("a", 51),
 			userID:        uint(1),
 			expectedError: "Name is too long (maximum is 50 characters)",
@@ -311,7 +311,7 @@ func TestShouldNotUpdateBoard(t *testing.T) {
 			boardName:     "",
 			expectedError: "Name must exist",
 		}, {
-			testName:      "when name size more than 51 characters",
+			testName:      "when name size more than 50 characters",
 			boardName:     strings.Repeat("a", 51),
 			expectedError: "Name is too long (maximum is 50 characters)",
 		},
