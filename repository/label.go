@@ -66,10 +66,7 @@ func (r *LabelRepository) Create(name, color string, bid uint) (*entity.Label, [
 }
 
 func (r *LabelRepository) Update(l *entity.Label, name, color string) []validator.ValidationError {
-	l.Name = name
-	l.Color = color
-
-	if err := r.db.Save(l).Error; err != nil {
+	if err := r.db.Model(l).Updates(map[string]interface{}{"name": name, "color": color}).Error; err != nil {
 		return validator.FormattedValidationError(err)
 	}
 
