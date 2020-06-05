@@ -74,8 +74,8 @@ func (r *LabelRepository) Update(l *entity.Label, name, color string) []validato
 }
 
 func (r *LabelRepository) Delete(l *entity.Label) []validator.ValidationError {
-	if err := r.db.Delete(l).Error; err != nil {
-		log.Printf("fail to delete label: %v", err)
+	if rslt := r.db.Delete(l); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete label: %v", rslt.Error)
 		return validator.NewValidationErrors("invalid request")
 	}
 
