@@ -61,9 +61,7 @@ func (r *ListRepository) Create(name string, bid uint) (*entity.List, []validato
 }
 
 func (r *ListRepository) Update(l *entity.List, name string) []validator.ValidationError {
-	l.Name = name
-
-	if err := r.db.Save(l).Error; err != nil {
+	if err := r.db.Model(l).Updates(map[string]interface{}{"name": name}).Error; err != nil {
 		return validator.FormattedValidationError(err)
 	}
 
