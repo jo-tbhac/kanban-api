@@ -15,7 +15,7 @@ import (
 	"local.packages/utils"
 )
 
-func TestShouldSuccessfullyValidateUID(t *testing.T) {
+func TestShouldSuccessfullyValidateUIDOnLabelRepository(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
 
@@ -37,7 +37,7 @@ func TestShouldSuccessfullyValidateUID(t *testing.T) {
 	}
 }
 
-func TestShouldFailureValidateUID(t *testing.T) {
+func TestShouldFailureValidateUIDOnLabelRepository(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
 
