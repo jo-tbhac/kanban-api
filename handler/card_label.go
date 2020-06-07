@@ -11,7 +11,7 @@ import (
 )
 
 type cardLabelParams struct {
-	LabelID uint `form:"label_id" binding:"required"`
+	LabelID uint `json:"label_id" binding:"required"`
 }
 
 type CardLabelHandler struct {
@@ -25,8 +25,8 @@ func NewCardLabelHandler(r *repository.CardLabelRepository) *CardLabelHandler {
 func (h *CardLabelHandler) CreateCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
-	if err := c.ShouldBindQuery(&p); err != nil {
-		log.Printf("fail to bind Query: %v", err)
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
@@ -50,17 +50,10 @@ func (h *CardLabelHandler) CreateCardLabel(c *gin.Context) {
 }
 
 func (h *CardLabelHandler) DeleteCardLabel(c *gin.Context) {
-	var p cardLabelParams
-
-	if err := c.ShouldBindQuery(&p); err != nil {
-		log.Printf("fail to bind Query: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
-		return
-	}
-
 	cid := getIDParam(c, "cardID")
+	lid := getIDParam(c, "labelID")
 
-	cl, err := h.repository.Find(p.LabelID, cid, currentUserID(c))
+	cl, err := h.repository.Find(lid, cid, currentUserID(c))
 
 	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card or label")

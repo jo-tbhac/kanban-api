@@ -71,7 +71,7 @@ func startServer() {
 	authorized.DELETE("/card/:cardID", cardHandler.DeleteCard)
 
 	authorized.POST("/card/:cardID/card_label", cardLabelHandler.CreateCardLabel)
-	authorized.DELETE("/card/:cardID/card_label", cardLabelHandler.DeleteCardLabel)
+	authorized.DELETE("/card/:cardID/card_label/:labelID", cardLabelHandler.DeleteCardLabel)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
