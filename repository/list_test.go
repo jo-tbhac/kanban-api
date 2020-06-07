@@ -52,7 +52,7 @@ func TestShouldFailureValidateUIDOnListRepository(t *testing.T) {
 	err := r.ValidateUID(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -106,7 +106,7 @@ func TestShouldNotFindList(t *testing.T) {
 	_, err := r.Find(listID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -186,7 +186,7 @@ func TestShouldNotCreateList(t *testing.T) {
 			_, err := r.Create(tc.listName, tc.boardID)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieved it. %v", err)
+				t.Error("was expected an error, but did not recieved it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -267,7 +267,7 @@ func TestShouldNotUpdateList(t *testing.T) {
 			err := r.Update(l, tc.listName)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieved it. %v", err)
+				t.Error("was expected an error, but did not recieved it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -333,7 +333,7 @@ func TestShouldNotDeleteList(t *testing.T) {
 	err := r.Delete(l)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

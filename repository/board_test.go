@@ -117,7 +117,7 @@ func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
 	_, err := r.Find(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+		t.Error("was expected an error, but did not recieve it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -177,7 +177,7 @@ func TestShouldNotFindBoardWithoutRelatedModel(t *testing.T) {
 	_, err := r.FindWithoutPreload(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+		t.Error("was expected an error, but did not recieve it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -254,7 +254,7 @@ func TestShouldNotCreateBoard(t *testing.T) {
 			_, err := r.Create(tc.boardName, tc.userID)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieve it. %v", err)
+				t.Error("was expected an error, but did not recieve it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -333,7 +333,7 @@ func TestShouldNotUpdateBoard(t *testing.T) {
 			err := r.Update(b, tc.boardName)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieve it. %v", err)
+				t.Error("was expected an error, but did not recieve it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -391,7 +391,7 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 	err := r.Delete(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

@@ -52,7 +52,7 @@ func TestShouldFailureValidateUIDOnCardRepository(t *testing.T) {
 	err := r.ValidateUID(listID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -111,7 +111,7 @@ func TestShouldNotFindCard(t *testing.T) {
 	_, err := r.Find(cardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -190,7 +190,7 @@ func TestShouldNotCreateCard(t *testing.T) {
 			_, err := r.Create(tc.title, tc.listID)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieved it. %v", err)
+				t.Error("was expected an error, but did not recieved it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -272,7 +272,7 @@ func TestShouldNotUpdateCardTitle(t *testing.T) {
 		err := r.UpdateTitle(c, tc.title)
 
 		if err == nil {
-			t.Errorf("was expected an error, but did not recieved it. %v", err)
+			t.Error("was expected an error, but did not recieved it.")
 		}
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -389,7 +389,7 @@ func TestShouldNotDeleteCard(t *testing.T) {
 	err := r.Delete(c)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

@@ -72,7 +72,7 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 	}
 
 	if err == nil {
-		t.Error("there were unfulfilled expectations: it did not recieve error")
+		t.Error("was not expected an error, but did not recieve it")
 	}
 
 	assert.Equal(t, err[0].Text, fmt.Sprintf("%s has already been taken", email))
@@ -131,7 +131,7 @@ func TestShouldNotSignInWhenEmailDoesNotExist(t *testing.T) {
 	_, err := r.SignIn(email, password)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+		t.Error("was not expected an error, but did not recieve it")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -159,7 +159,7 @@ func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
 	_, err := r.SignIn(email, password)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieve it. %v", err)
+		t.Error("was expected an error, but did not recieve it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

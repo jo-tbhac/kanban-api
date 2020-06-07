@@ -53,7 +53,7 @@ func TestShouldFailureValidateUIDOnLabelRepository(t *testing.T) {
 	err := r.ValidateUID(boardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -107,7 +107,7 @@ func TestShouldNotFindLabel(t *testing.T) {
 	_, err := r.Find(labelID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -240,7 +240,7 @@ func TestShouldNotCreateLabel(t *testing.T) {
 			_, err := r.Create(tc.labelName, tc.color, tc.boardID)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieved it. %v", err)
+				t.Error("was expected an error, but did not recieved it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -372,7 +372,7 @@ func TestShouldNotUpdateLabel(t *testing.T) {
 			err := r.Update(l, tc.labelName, tc.color)
 
 			if err == nil {
-				t.Errorf("was expected an error, but did not recieved it. %v", err)
+				t.Error("was expected an error, but did not recieved it.")
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -438,7 +438,7 @@ func TestShouldNotDeleteLabel(t *testing.T) {
 	err := r.Delete(l)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

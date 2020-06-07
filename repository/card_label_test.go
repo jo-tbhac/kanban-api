@@ -53,7 +53,7 @@ func TestShouldFailureValidateUIDOnCardLabelRepository(t *testing.T) {
 	err := r.ValidateUID(labelID, cardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -114,7 +114,7 @@ func TestShouldNotCreateCardLabelWhenDuplicatePrimaryKey(t *testing.T) {
 	_, err := r.Create(labelID, cardID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -169,7 +169,7 @@ func TestShouldNotFindCardLabel(t *testing.T) {
 	_, err := r.Find(labelID, cardID, userID)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -227,7 +227,7 @@ func TestShouldNotDeleteCardLabel(t *testing.T) {
 	err := r.Delete(cl)
 
 	if err == nil {
-		t.Errorf("was expected an error, but did not recieved it. %v", err)
+		t.Error("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
