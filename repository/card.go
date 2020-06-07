@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/jinzhu/gorm"
 
 	"local.packages/entity"
@@ -81,8 +83,9 @@ func (r *CardRepository) UpdateDescription(c *entity.Card, description string) [
 }
 
 func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
-	if err := r.db.Delete(c).Error; err != nil {
-		return validator.FormattedValidationError(err)
+	if rslt := r.db.Delete(c); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete card: %v", rslt.Error)
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil
