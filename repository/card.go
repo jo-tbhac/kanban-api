@@ -64,16 +64,16 @@ func (r *CardRepository) Create(title string, lid uint) (*entity.Card, []validat
 	return c, nil
 }
 
-func (r *CardRepository) Update(c *entity.Card, title, description string) []validator.ValidationError {
-	if title != "" {
-		c.Title = title
+func (r *CardRepository) UpdateTitle(c *entity.Card, title string) []validator.ValidationError {
+	if err := r.db.Model(c).Updates(map[string]interface{}{"title": title}).Error; err != nil {
+		return validator.FormattedValidationError(err)
 	}
 
-	if description != "" {
-		c.Description = description
-	}
+	return nil
+}
 
-	if err := r.db.Save(c).Error; err != nil {
+func (r *CardRepository) UpdateDescription(c *entity.Card, description string) []validator.ValidationError {
+	if err := r.db.Model(c).Updates(map[string]interface{}{"description": description}).Error; err != nil {
 		return validator.FormattedValidationError(err)
 	}
 
