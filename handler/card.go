@@ -68,8 +68,19 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 		return
 	}
 
-	if err := h.repository.Update(ca, p.Title, p.Description); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+	switch c.Param("attribute") {
+	case "title":
+		if err := h.repository.UpdateTitle(ca, p.Title); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+			return
+		}
+	case "description":
+		if err := h.repository.UpdateDescription(ca, p.Description); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+			return
+		}
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 

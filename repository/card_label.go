@@ -70,8 +70,8 @@ func (r *CardLabelRepository) Find(lid, cid, uid uint) (*entity.CardLabel, []val
 }
 
 func (r *CardLabelRepository) Delete(cl *entity.CardLabel) []validator.ValidationError {
-	if err := r.db.Delete(cl).Error; err != nil {
-		log.Printf("fail to delete card_label: %v", err)
+	if rslt := r.db.Delete(cl); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete card_label: %v", rslt.Error)
 		return validator.NewValidationErrors("invalid request")
 	}
 

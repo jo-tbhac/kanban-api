@@ -61,9 +61,7 @@ func (r *ListRepository) Create(name string, bid uint) (*entity.List, []validato
 }
 
 func (r *ListRepository) Update(l *entity.List, name string) []validator.ValidationError {
-	l.Name = name
-
-	if err := r.db.Save(l).Error; err != nil {
+	if err := r.db.Model(l).Updates(map[string]interface{}{"name": name}).Error; err != nil {
 		return validator.FormattedValidationError(err)
 	}
 
@@ -71,8 +69,8 @@ func (r *ListRepository) Update(l *entity.List, name string) []validator.Validat
 }
 
 func (r *ListRepository) Delete(l *entity.List) []validator.ValidationError {
-	if err := r.db.Delete(l).Error; err != nil {
-		log.Printf("fail to delete list: %v", err)
+	if rslt := r.db.Delete(l); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete list: %v", rslt.Error)
 		return validator.NewValidationErrors("invalid request")
 	}
 
