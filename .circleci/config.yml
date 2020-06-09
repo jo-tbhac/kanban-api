@@ -1,0 +1,44 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.13
+        environment:
+          GO111MODULE: "on"
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      # - image: circleci/postgres:9.4
+
+    #### TEMPLATE_NOTE: go expects specific checkout path representing url
+    #### expecting it in the form of
+    ####   /go/src/github.com/circleci/go-tool
+    ####   /go/src/bitbucket.org/circleci/go-tool
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    commands:
+      go_mod_download:
+        steps:
+          - restore_cache:
+              name: Restore go modules cache
+              keys:
+                - go-modules-{{ checksum "go.sum" }}
+
+          - run: go mod download
+
+          - save_cache:
+              name: Save go modules cache
+              key: go-modules-{{ checksum "go.sum" }}
+              paths:
+                - "/go/pkg/mod"
+    steps:
+      - checkout
+      - go_mod_download
+
+      - run:
+          name: Run Tests
+          command: go test -v local.packages/...
