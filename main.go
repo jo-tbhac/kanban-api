@@ -45,6 +45,7 @@ func startServer() {
 	r := gin.Default()
 
 	r.Use(handler.MapIDParamsToContext())
+	r.Use(handler.CORSMiddleware())
 
 	authorized := r.Group("/", userHandler.Authenticate())
 
