@@ -17,14 +17,14 @@ func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
 	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
 		return
 	}
 
 	u, err := h.repository.SignIn(p.Email, p.Password)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 

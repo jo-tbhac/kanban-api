@@ -42,7 +42,7 @@ func (h ListHandler) CreateList(c *gin.Context) {
 	l, err := h.repository.Create(p.Name, bid)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
@@ -68,11 +68,11 @@ func (h ListHandler) UpdateList(c *gin.Context) {
 	}
 
 	if err := h.repository.Update(l, p.Name); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"label": l})
+	c.JSON(http.StatusOK, gin.H{"list": l})
 }
 
 func (h ListHandler) DeleteList(c *gin.Context) {
@@ -86,7 +86,7 @@ func (h ListHandler) DeleteList(c *gin.Context) {
 	}
 
 	if err := h.repository.Delete(l); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 

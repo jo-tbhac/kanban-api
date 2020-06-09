@@ -56,7 +56,7 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 
 	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h CardHandler) DeleteCard(c *gin.Context) {
 
 	if err != nil {
 		log.Println("uid does not match board.user_id associated with the card")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
