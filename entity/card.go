@@ -12,7 +12,7 @@ type Card struct {
 	UpdatedAt   time.Time  `json:"-" gorm:"not null"`
 	DeletedAt   *time.Time `json:"-"`
 	Title       string     `json:"title" validate:"required,max=50" gorm:"not null;size:50"`
-	Description string     `json:"description"`
+	Description string     `json:"description" gorm:"type:varchar(20000)"`
 	ListID      uint       `json:"list_id" gorm:"not null"`
 	Labels      []Label    `json:"labels" gorm:"many2many:card_labels;"`
 }
