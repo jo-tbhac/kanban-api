@@ -75,6 +75,24 @@ func (h ListHandler) UpdateList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"list": l})
 }
 
+func (h ListHandler) UpdateListIndex(c *gin.Context) {
+	var ps []struct {
+		ID    uint
+		Index int
+	}
+	if err := c.ShouldBindJSON(&ps); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	if err := h.repository.UpdateIndex(ps); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (h ListHandler) DeleteList(c *gin.Context) {
 	id := getIDParam(c, "listID")
 	l, err := h.repository.Find(id, currentUserID(c))
