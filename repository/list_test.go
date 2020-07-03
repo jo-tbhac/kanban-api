@@ -126,10 +126,15 @@ func TestShouldSuccessfullyCreateList(t *testing.T) {
 	updatedAt := utils.AnyTime{}
 	name := strings.Repeat("a", 50)
 	boardID := uint(1)
+	index := 1
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `index` FROM `lists`")).
+		WithArgs(boardID).
+		WillReturnRows(sqlmock.NewRows([]string{"index"}).AddRow(index))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`created_at`,`updated_at`,`deleted_at`,`name`,`board_id`)")).
-		WithArgs(createdAt, updatedAt, nil, name, boardID).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists`")).
+		WithArgs(createdAt, updatedAt, nil, name, boardID, index+1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -150,6 +155,7 @@ func TestShouldSuccessfullyCreateList(t *testing.T) {
 	assert.IsType(t, l.CreatedAt, time.Time{})
 	assert.IsType(t, l.UpdatedAt, time.Time{})
 	assert.Nil(t, l.DeletedAt)
+	assert.Equal(t, l.Index, index+1)
 }
 
 func TestShouldNotCreateList(t *testing.T) {
@@ -279,6 +285,33 @@ func TestShouldNotUpdateList(t *testing.T) {
 	}
 }
 
+func TestShouldSuccessfullyUpdateListIndex(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewListRepository(db)
+
+	params := []struct {
+		ID    uint
+		Index int
+	}{
+		{ID: 1, Index: 1},
+		{ID: 2, Index: 3},
+		{ID: 3, Index: 2},
+	}
+
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `index` = ELT(FIELD(id,1,2,3),1,3,2) WHERE id IN (1,2,3)")).
+		WillReturnResult(sqlmock.NewResult(1, 3))
+
+	if err := r.UpdateIndex(params); err != nil {
+		t.Errorf("was not expected an error. %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+}
+
 func TestShouldSuccessfullyDeleteList(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
@@ -291,10 +324,11 @@ func TestShouldSuccessfullyDeleteList(t *testing.T) {
 	}
 
 	deletedAt := utils.AnyTime{}
+	index := 0
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET")).
-		WithArgs(deletedAt, l.ID).
+		WithArgs(deletedAt, index, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -322,10 +356,11 @@ func TestShouldNotDeleteList(t *testing.T) {
 	}
 
 	deletedAt := utils.AnyTime{}
+	index := 0
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET")).
-		WithArgs(deletedAt, l.ID).
+		WithArgs(deletedAt, index, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 
 	mock.ExpectCommit()
@@ -340,6 +375,5 @@ func TestShouldNotDeleteList(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Nil(t, l.DeletedAt)
 	assert.Equal(t, err[0].Text, "invalid request")
 }

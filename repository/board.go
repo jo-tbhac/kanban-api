@@ -26,7 +26,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 
 	rslt := r.db.Scopes(selectBoardColumn).
 		Preload("Lists", func(db *gorm.DB) *gorm.DB {
-			return db.Scopes(selectListColumn)
+			return db.Scopes(selectListColumn).Order("lists.index asc")
 		}).
 		Preload("Lists.Cards", func(db *gorm.DB) *gorm.DB {
 			return db.Scopes(selectCardColumn)

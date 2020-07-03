@@ -33,6 +33,7 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		ID:      uint(2),
 		Name:    "mockList",
 		BoardID: mockBoard.ID,
+		Index:   1,
 	}
 
 	mockCard := entity.Card{
@@ -54,11 +55,11 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 			sqlmock.NewRows([]string{"id", "updated_at", "name", "user_id"}).
 				AddRow(mockBoard.ID, mockBoard.UpdatedAt, mockBoard.Name, userID))
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT lists.id, lists.name, lists.board_id FROM `lists`")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT lists.id, lists.name, lists.board_id, lists.index FROM `lists`")).
 		WithArgs(mockBoard.ID).
 		WillReturnRows(
-			sqlmock.NewRows([]string{"id", "name", "board_id"}).
-				AddRow(mockList.ID, mockList.Name, mockList.BoardID))
+			sqlmock.NewRows([]string{"id", "name", "board_id", "index"}).
+				AddRow(mockList.ID, mockList.Name, mockList.BoardID, mockList.Index))
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT cards.id, cards.title, cards.description, cards.list_id FROM `cards`")).
 		WithArgs(mockList.ID).
@@ -90,6 +91,7 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 	assert.Equal(t, b.Lists[0].ID, mockList.ID)
 	assert.Equal(t, b.Lists[0].Name, mockList.Name)
 	assert.Equal(t, b.Lists[0].BoardID, mockList.BoardID)
+	assert.Equal(t, b.Lists[0].Index, mockList.Index)
 
 	assert.Equal(t, b.Lists[0].Cards[0].ID, mockCard.ID)
 	assert.Equal(t, b.Lists[0].Cards[0].Title, mockCard.Title)

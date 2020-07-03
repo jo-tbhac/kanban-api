@@ -65,6 +65,7 @@ func startServer() {
 
 	authorized.POST("/board/:boardID/list", listHandler.CreateList)
 	authorized.PATCH("/list/:listID", listHandler.UpdateList)
+	authorized.PATCH("/lists/index", listHandler.UpdateListIndex)
 	authorized.DELETE("/list/:listID", listHandler.DeleteList)
 
 	authorized.POST("/list/:listID/card", cardHandler.CreateCard)

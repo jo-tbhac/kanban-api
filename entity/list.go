@@ -14,6 +14,7 @@ type List struct {
 	Name      string     `json:"name" validate:"required,max=50" gorm:"not null;size:50"`
 	BoardID   uint       `json:"board_id" gorm:"not null"`
 	Cards     []Card     `json:"cards"`
+	Index     int        `json:"index"`
 }
 
 func (l *List) BeforeSave() error {
