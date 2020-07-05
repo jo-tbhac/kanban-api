@@ -87,6 +87,26 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"card": ca})
 }
 
+func (h CardHandler) UpdateCardIndex(c *gin.Context) {
+	var ps []struct {
+		ID     uint `json:"id"`
+		Index  int  `json:"index"`
+		ListID uint `json:"list_id"`
+	}
+
+	if err := c.ShouldBindJSON(&ps); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	if err := h.repository.UpdateIndex(ps); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (h CardHandler) DeleteCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
 	ca, err := h.repository.Find(id, currentUserID(c))
