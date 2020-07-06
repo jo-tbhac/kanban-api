@@ -15,6 +15,7 @@ type Card struct {
 	Description string     `json:"description" gorm:"type:varchar(20000)"`
 	ListID      uint       `json:"list_id" gorm:"not null"`
 	Labels      []Label    `json:"labels" gorm:"many2many:card_labels;"`
+	Index       int        `json:"index"`
 }
 
 func (c *Card) BeforeSave() error {

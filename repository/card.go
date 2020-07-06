@@ -1,7 +1,11 @@
 package repository
 
 import (
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 
@@ -20,7 +24,7 @@ func NewCardRepository(db *gorm.DB) *CardRepository {
 }
 
 func selectCardColumn(db *gorm.DB) *gorm.DB {
-	return db.Select("cards.id, cards.title, cards.description, cards.list_id")
+	return db.Select("cards.id, cards.title, cards.description, cards.list_id, cards.index")
 }
 
 func (r *CardRepository) ValidateUID(lid, uid uint) []validator.ValidationError {
@@ -54,9 +58,15 @@ func (r *CardRepository) Find(id, uid uint) (*entity.Card, []validator.Validatio
 }
 
 func (r *CardRepository) Create(title string, lid uint) (*entity.Card, []validator.ValidationError) {
+	pc := &entity.Card{}
+	if r := r.db.Select("`index`").Where("list_id = ?", lid).Order("`index` desc").Take(pc).RowsAffected; r > 0 {
+		pc.Index = pc.Index + 1
+	}
+
 	c := &entity.Card{
 		Title:  title,
 		ListID: lid,
+		Index:  pc.Index,
 	}
 
 	if err := r.db.Create(c).Error; err != nil {
@@ -82,8 +92,40 @@ func (r *CardRepository) UpdateDescription(c *entity.Card, description string) [
 	return nil
 }
 
+func (r *CardRepository) UpdateIndex(params []struct {
+	ID     uint `json:"id"`
+	Index  int  `json:"index"`
+	ListID uint `json:"list_id"`
+}) []validator.ValidationError {
+	ids := make([]string, 0, len(params))
+	listIds := make([]string, 0, len(params))
+	values := make([]string, 0, len(params))
+
+	for _, p := range params {
+		ids = append(ids, strconv.Itoa(int(p.ID)))
+		listIds = append(listIds, strconv.Itoa(int(p.ListID)))
+		values = append(values, strconv.Itoa(p.Index))
+	}
+
+	joinedIDs := strings.Join(ids, ",")
+	joinedListIDs := strings.Join(listIds, ",")
+	joinedValues := strings.Join(values, ",")
+	q := fmt.Sprintf(
+		"UPDATE `cards` SET `index` = ELT(FIELD(id,%s),%s), `list_id` = ELT(FIELD(id,%s),%s) WHERE id IN (%s)",
+		joinedIDs,
+		joinedValues,
+		joinedIDs,
+		joinedListIDs,
+		joinedIDs)
+
+	if err := r.db.Exec(q).Error; err != nil {
+		return validator.FormattedValidationError(err)
+	}
+	return nil
+}
+
 func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
-	if rslt := r.db.Delete(c); rslt.RowsAffected == 0 {
+	if rslt := r.db.Model(c).UpdateColumns(map[string]interface{}{"deleted_at": time.Now(), "index": 0}); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete card: %v", rslt.Error)
 		return validator.NewValidationErrors("invalid request")
 	}

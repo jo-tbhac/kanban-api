@@ -29,7 +29,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 			return db.Scopes(selectListColumn).Order("lists.index asc")
 		}).
 		Preload("Lists.Cards", func(db *gorm.DB) *gorm.DB {
-			return db.Scopes(selectCardColumn)
+			return db.Scopes(selectCardColumn).Order("cards.index asc")
 		}).
 		Preload("Lists.Cards.Labels", func(db *gorm.DB) *gorm.DB {
 			return db.Scopes(selectWithLabelAssociationKey)
