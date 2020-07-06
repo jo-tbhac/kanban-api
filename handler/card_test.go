@@ -49,7 +49,7 @@ func TestCreateCardHandlerShouldReturnsStatusCreatedWithCardData(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id"))
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `cards` (`created_at`,`updated_at`,`deleted_at`,`title`,`description`,`list_id`)")).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `cards`")).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -264,6 +264,47 @@ func TestShouldFailureUpdateCardHandler(t *testing.T) {
 			assert.Equal(t, res["errors"][0].Text, tc.expectedError)
 		})
 	}
+}
+
+func TestUpdateCardIndexShouldReturnsStatusOK(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCardHandler(repository.NewCardRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	b, err := json.Marshal([]struct {
+		ID     uint `json:"id"`
+		Index  int  `json:"index"`
+		ListID uint `json:"list_id"`
+	}{
+		{ID: 1, Index: 1, ListID: 1},
+		{ID: 2, Index: 3, ListID: 1},
+		{ID: 3, Index: 2, ListID: 1},
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/cards/index", bytes.NewReader(b))
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	q := "UPDATE `cards` SET `index` = ELT(FIELD(id,1,2,3),1,3,2), `list_id` = ELT(FIELD(id,1,2,3),1,1,1) WHERE id IN (1,2,3)"
+	mock.ExpectExec(regexp.QuoteMeta(q)).WillReturnResult(sqlmock.NewResult(1, 3))
+
+	r.PATCH("/cards/index", ch.UpdateCardIndex)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
 }
 
 func TestDeleteCardHandlerShouldReturnsStatusOK(t *testing.T) {

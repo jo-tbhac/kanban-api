@@ -132,10 +132,11 @@ func TestShouldSuccessfullyCreateCard(t *testing.T) {
 	createdAt := utils.AnyTime{}
 	updatedAt := utils.AnyTime{}
 	description := ""
+	index := 0
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `cards` (`created_at`,`updated_at`,`deleted_at`,`title`,`description`,`list_id`)")).
-		WithArgs(createdAt, updatedAt, nil, title, description, listID).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `cards`")).
+		WithArgs(createdAt, updatedAt, nil, title, description, listID, index).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -154,6 +155,7 @@ func TestShouldSuccessfullyCreateCard(t *testing.T) {
 	assert.Equal(t, c.Title, title)
 	assert.Equal(t, c.Description, description)
 	assert.Equal(t, c.ListID, listID)
+	assert.Equal(t, c.Index, index)
 }
 
 func TestShouldNotCreateCard(t *testing.T) {
@@ -335,6 +337,35 @@ func TestShouldSuccessfullyUpdateCardDescription(t *testing.T) {
 	}
 }
 
+func TestShouldSuccessfullyUpdateCardIndex(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewCardRepository(db)
+
+	params := []struct {
+		ID     uint `json:"id"`
+		Index  int  `json:"index"`
+		ListID uint `json:"list_id"`
+	}{
+		{ID: 1, Index: 1, ListID: 1},
+		{ID: 2, Index: 3, ListID: 1},
+		{ID: 3, Index: 2, ListID: 1},
+	}
+
+	q := "UPDATE `cards` SET `index` = ELT(FIELD(id,1,2,3),1,3,2), `list_id` = ELT(FIELD(id,1,2,3),1,1,1) WHERE id IN (1,2,3)"
+
+	mock.ExpectExec(regexp.QuoteMeta(q)).WillReturnResult(sqlmock.NewResult(1, 3))
+
+	if err := r.UpdateIndex(params); err != nil {
+		t.Errorf("was not expected an error. %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+}
+
 func TestShouldSuccessfullyDeleteCard(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
@@ -344,13 +375,15 @@ func TestShouldSuccessfullyDeleteCard(t *testing.T) {
 	c := &entity.Card{
 		ID:        uint(1),
 		DeletedAt: nil,
+		Index:     1,
 	}
 
 	deletedAt := utils.AnyTime{}
+	index := 0
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `cards` SET")).
-		WithArgs(deletedAt, c.ID).
+		WithArgs(deletedAt, index, c.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -364,6 +397,7 @@ func TestShouldSuccessfullyDeleteCard(t *testing.T) {
 	}
 
 	assert.IsType(t, c.DeletedAt, &time.Time{})
+	assert.Equal(t, c.Index, index)
 }
 
 func TestShouldNotDeleteCard(t *testing.T) {
@@ -375,13 +409,15 @@ func TestShouldNotDeleteCard(t *testing.T) {
 	c := &entity.Card{
 		ID:        uint(1),
 		DeletedAt: nil,
+		Index:     1,
 	}
 
 	deletedAt := utils.AnyTime{}
+	index := 0
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `cards` SET")).
-		WithArgs(deletedAt, c.ID).
+		WithArgs(deletedAt, index, c.ID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 
 	mock.ExpectCommit()
@@ -396,6 +432,5 @@ func TestShouldNotDeleteCard(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Nil(t, c.DeletedAt)
 	assert.Equal(t, err[0].Text, "invalid request")
 }
