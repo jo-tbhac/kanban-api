@@ -41,6 +41,7 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		Title:       "mockCard",
 		Description: "mockDescription",
 		ListID:      mockList.ID,
+		Index:       1,
 	}
 
 	mockLabel := entity.Label{
@@ -61,11 +62,11 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 			sqlmock.NewRows([]string{"id", "name", "board_id", "index"}).
 				AddRow(mockList.ID, mockList.Name, mockList.BoardID, mockList.Index))
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT cards.id, cards.title, cards.description, cards.list_id FROM `cards`")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT cards.id, cards.title, cards.description, cards.list_id, cards.index FROM `cards`")).
 		WithArgs(mockList.ID).
 		WillReturnRows(
-			sqlmock.NewRows([]string{"id", "title", "description", "list_id"}).
-				AddRow(mockCard.ID, mockCard.Title, mockCard.Description, mockCard.ListID))
+			sqlmock.NewRows([]string{"id", "title", "description", "list_id", "index"}).
+				AddRow(mockCard.ID, mockCard.Title, mockCard.Description, mockCard.ListID, mockCard.Index))
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT labels.id, labels.name, labels.color, labels.board_id, card_labels.card_id FROM `labels`")).
 		WithArgs(mockCard.ID).
