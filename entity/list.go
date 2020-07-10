@@ -6,6 +6,7 @@ import (
 	"local.packages/validator"
 )
 
+// List is model of lists table.
 type List struct {
 	ID        uint       `json:"id"`
 	CreatedAt time.Time  `json:"-" gorm:"not null"`
@@ -17,6 +18,8 @@ type List struct {
 	Index     int        `json:"index"`
 }
 
+// BeforeSave called before create/update a record of lists table.
+// validate a field of struct and return an error if there is an invalid value
 func (l *List) BeforeSave() error {
 	return validator.Validate(l)
 }

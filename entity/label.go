@@ -6,6 +6,7 @@ import (
 	"local.packages/validator"
 )
 
+// Label is model of labels table.
 type Label struct {
 	ID        uint       `json:"id"`
 	CreatedAt time.Time  `json:"-" gorm:"not null"`
@@ -16,6 +17,8 @@ type Label struct {
 	BoardID   uint       `json:"-" gorm:"not null"`
 }
 
+// BeforeSave called before create/update a record of labels table.
+// validate a field of struct and return an error if there is an invalid value
 func (l *Label) BeforeSave() error {
 	return validator.Validate(l)
 }

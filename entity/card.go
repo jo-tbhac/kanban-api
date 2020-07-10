@@ -6,6 +6,7 @@ import (
 	"local.packages/validator"
 )
 
+// Card is model of cards table.
 type Card struct {
 	ID          uint       `json:"id"`
 	CreatedAt   time.Time  `json:"-" gorm:"not null"`
@@ -18,6 +19,8 @@ type Card struct {
 	Index       int        `json:"index"`
 }
 
+// BeforeSave called before create/update a record of cards table.
+// validate a field of struct and return an error if there is an invalid value
 func (c *Card) BeforeSave() error {
 	return validator.Validate(c)
 }
