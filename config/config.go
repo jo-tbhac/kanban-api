@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ConfigList contains application information.
 type ConfigList struct {
 	Database struct {
 		Name   string
@@ -17,6 +18,7 @@ type ConfigList struct {
 	}
 }
 
+// Config is instance of ConfigList.
 var Config ConfigList
 
 func init() {
