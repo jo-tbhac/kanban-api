@@ -9,16 +9,19 @@ import (
 	"local.packages/validator"
 )
 
+// CardLabelRepository ...
 type CardLabelRepository struct {
 	db *gorm.DB
 }
 
+// NewCardLabelRepository is constructor for CardLabelRepository.
 func NewCardLabelRepository(db *gorm.DB) *CardLabelRepository {
 	return &CardLabelRepository{
 		db: db,
 	}
 }
 
+// ValidateUID validates whether a listID and cardID received as args were created by the login user.
 func (r *CardLabelRepository) ValidateUID(lid, cid, uid uint) []validator.ValidationError {
 	var b entity.Board
 
@@ -37,6 +40,7 @@ func (r *CardLabelRepository) ValidateUID(lid, cid, uid uint) []validator.Valida
 	return nil
 }
 
+// Create insert a new record to a card_labels table.
 func (r *CardLabelRepository) Create(lid, cid uint) (*entity.Label, []validator.ValidationError) {
 	var l entity.Label
 	cl := &entity.CardLabel{
@@ -53,6 +57,7 @@ func (r *CardLabelRepository) Create(lid, cid uint) (*entity.Label, []validator.
 	return &l, nil
 }
 
+// Find returns a record of CardLabel that found by card_id and label_id.
 func (r *CardLabelRepository) Find(lid, cid, uid uint) (*entity.CardLabel, []validator.ValidationError) {
 	var cl entity.CardLabel
 
@@ -69,6 +74,7 @@ func (r *CardLabelRepository) Find(lid, cid, uid uint) (*entity.CardLabel, []val
 	return &cl, nil
 }
 
+// Delete delete a record from a card_labels table.
 func (r *CardLabelRepository) Delete(cl *entity.CardLabel) []validator.ValidationError {
 	if rslt := r.db.Delete(cl); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete card_label: %v", rslt.Error)

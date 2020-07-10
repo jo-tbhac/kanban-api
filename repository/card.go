@@ -13,10 +13,12 @@ import (
 	"local.packages/validator"
 )
 
+// CardRepository ...
 type CardRepository struct {
 	db *gorm.DB
 }
 
+// NewCardRepository is constructor for CardRepository.
 func NewCardRepository(db *gorm.DB) *CardRepository {
 	return &CardRepository{
 		db: db,
@@ -27,6 +29,7 @@ func selectCardColumn(db *gorm.DB) *gorm.DB {
 	return db.Select("cards.id, cards.title, cards.description, cards.list_id, cards.index")
 }
 
+// ValidateUID validates whether a listID received as args was created by the login user.
 func (r *CardRepository) ValidateUID(lid, uid uint) []validator.ValidationError {
 	var b entity.Board
 
@@ -42,6 +45,7 @@ func (r *CardRepository) ValidateUID(lid, uid uint) []validator.ValidationError 
 	return nil
 }
 
+// Find returns a record of Card that found by id.
 func (r *CardRepository) Find(id, uid uint) (*entity.Card, []validator.ValidationError) {
 	var c entity.Card
 
@@ -57,6 +61,7 @@ func (r *CardRepository) Find(id, uid uint) (*entity.Card, []validator.Validatio
 	return &c, nil
 }
 
+// Create insert a new record to a cards table.
 func (r *CardRepository) Create(title string, lid uint) (*entity.Card, []validator.ValidationError) {
 	pc := &entity.Card{}
 	if r := r.db.Select("`index`").Where("list_id = ?", lid).Order("`index` desc").Take(pc).RowsAffected; r > 0 {
@@ -76,6 +81,7 @@ func (r *CardRepository) Create(title string, lid uint) (*entity.Card, []validat
 	return c, nil
 }
 
+// UpdateTitle update a record's title in a cards table.
 func (r *CardRepository) UpdateTitle(c *entity.Card, title string) []validator.ValidationError {
 	if err := r.db.Model(c).Updates(map[string]interface{}{"title": title}).Error; err != nil {
 		return validator.FormattedValidationError(err)
@@ -84,6 +90,7 @@ func (r *CardRepository) UpdateTitle(c *entity.Card, title string) []validator.V
 	return nil
 }
 
+// UpdateDescription update a record's description in a cards table.
 func (r *CardRepository) UpdateDescription(c *entity.Card, description string) []validator.ValidationError {
 	if err := r.db.Model(c).Updates(map[string]interface{}{"description": description}).Error; err != nil {
 		return validator.FormattedValidationError(err)
@@ -92,6 +99,7 @@ func (r *CardRepository) UpdateDescription(c *entity.Card, description string) [
 	return nil
 }
 
+// UpdateIndex update Card's order that recieved as args.
 func (r *CardRepository) UpdateIndex(params []struct {
 	ID     uint `json:"id"`
 	Index  int  `json:"index"`
@@ -124,6 +132,8 @@ func (r *CardRepository) UpdateIndex(params []struct {
 	return nil
 }
 
+// Delete delete a record from a cards table.
+// use soft delete.
 func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
 	if rslt := r.db.Model(c).UpdateColumns(map[string]interface{}{"deleted_at": time.Now(), "index": 0}); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete card: %v", rslt.Error)

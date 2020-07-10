@@ -13,10 +13,12 @@ import (
 	"local.packages/validator"
 )
 
+// ListRepository ...
 type ListRepository struct {
 	db *gorm.DB
 }
 
+// NewListRepository is constructor for a ListRepository.
 func NewListRepository(db *gorm.DB) *ListRepository {
 	return &ListRepository{
 		db: db,
@@ -27,6 +29,7 @@ func selectListColumn(db *gorm.DB) *gorm.DB {
 	return db.Select("lists.id, lists.name, lists.board_id, lists.index")
 }
 
+// ValidateUID validates whether a boardID received as args was created by the login user.
 func (r *ListRepository) ValidateUID(id, uid uint) []validator.ValidationError {
 	var b entity.Board
 
@@ -37,6 +40,7 @@ func (r *ListRepository) ValidateUID(id, uid uint) []validator.ValidationError {
 	return nil
 }
 
+// Find returns a record of List that found by id.
 func (r *ListRepository) Find(id, uid uint) (*entity.List, []validator.ValidationError) {
 	var l entity.List
 
@@ -51,6 +55,7 @@ func (r *ListRepository) Find(id, uid uint) (*entity.List, []validator.Validatio
 	return &l, nil
 }
 
+// Create insert a new record to a lists table.
 func (r *ListRepository) Create(name string, bid uint) (*entity.List, []validator.ValidationError) {
 	pl := &entity.List{}
 	if r := r.db.Select("`index`").Where("board_id = ?", bid).Order("`index` desc").Take(pl).RowsAffected; r > 0 {
@@ -70,6 +75,7 @@ func (r *ListRepository) Create(name string, bid uint) (*entity.List, []validato
 	return l, nil
 }
 
+// Update update a record in a lists table.
 func (r *ListRepository) Update(l *entity.List, name string) []validator.ValidationError {
 	if err := r.db.Model(l).Updates(map[string]interface{}{"name": name}).Error; err != nil {
 		return validator.FormattedValidationError(err)
@@ -78,6 +84,7 @@ func (r *ListRepository) Update(l *entity.List, name string) []validator.Validat
 	return nil
 }
 
+// UpdateIndex update List's order that recieved as args.
 func (r *ListRepository) UpdateIndex(params []struct {
 	ID    uint
 	Index int
@@ -100,6 +107,8 @@ func (r *ListRepository) UpdateIndex(params []struct {
 	return nil
 }
 
+// Delete delete a record from a lists table.
+// use soft delete.
 func (r *ListRepository) Delete(l *entity.List) []validator.ValidationError {
 	if rslt := r.db.Model(l).UpdateColumns(map[string]interface{}{"deleted_at": time.Now(), "index": 0}); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete list: %v", rslt.Error)
