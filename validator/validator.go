@@ -12,6 +12,7 @@ import (
 var regexpMySQLErrorCode = regexp.MustCompile(`^Error ([0-9]{4})`)
 var regexpMySQLErrorValue = regexp.MustCompile(`'(.*?)'`)
 
+// ValidationError represents an error's specification.
 type ValidationError struct {
 	Text string `json:"text"`
 }
@@ -22,6 +23,7 @@ func init() {
 	validate = validator.New()
 }
 
+// NewValidationErrors create instance of ValidationError.
 func NewValidationErrors(messages ...string) []ValidationError {
 	var validationErrors []ValidationError
 
@@ -32,10 +34,12 @@ func NewValidationErrors(messages ...string) []ValidationError {
 	return validationErrors
 }
 
+// Validate validates a structs fields.
 func Validate(s interface{}) error {
 	return validate.Struct(s)
 }
 
+// FormattedValidationError returns formatted errors.
 func FormattedValidationError(err error) []ValidationError {
 	var validationErrors []ValidationError
 
@@ -62,6 +66,8 @@ func FormattedValidationError(err error) []ValidationError {
 	return validationErrors
 }
 
+// FormattedMySQLError returns formatted errors.
+// found by MySQL error code.
 func FormattedMySQLError(err error) []ValidationError {
 	defer func() {
 		if err := recover(); err != nil {

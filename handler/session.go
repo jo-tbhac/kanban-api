@@ -13,6 +13,8 @@ type sessionParams struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// CreateSession call a function that authenticate by request params.
+// returns a session token if authentication was valid.
 func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 

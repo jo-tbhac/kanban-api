@@ -15,14 +15,19 @@ type cardParams struct {
 	Description string `json:"description"`
 }
 
+// CardHandler ...
 type CardHandler struct {
 	repository *repository.CardRepository
 }
 
+// NewCardHandler is constructor for CardHandler.
 func NewCardHandler(r *repository.CardRepository) *CardHandler {
 	return &CardHandler{repository: r}
 }
 
+// CreateCard call a function that create a new record to cards table.
+// if creation was successful, returns status 201 and instance of Card as http response.
+// if creation was failure, returns status 400 and error with messages.
 func (h CardHandler) CreateCard(c *gin.Context) {
 	var p cardParams
 
@@ -50,6 +55,9 @@ func (h CardHandler) CreateCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"card": ca})
 }
 
+// UpdateCard call a function that update a record in cards table.
+// if update was successful, returns status 200 and updated instance of Card as http response.
+// if update was failure, returns status 400 and error with messages.
 func (h CardHandler) UpdateCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
 	ca, err := h.repository.Find(id, currentUserID(c))
@@ -87,6 +95,9 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"card": ca})
 }
 
+// UpdateCardIndex call a function that update cards order.
+// if update was successful, returns status 200.
+// if update was failure, returns status 400 and error with messages.
 func (h CardHandler) UpdateCardIndex(c *gin.Context) {
 	var ps []struct {
 		ID     uint `json:"id"`
@@ -107,6 +118,9 @@ func (h CardHandler) UpdateCardIndex(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// DeleteCard call a function that delete a record from cards table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
 func (h CardHandler) DeleteCard(c *gin.Context) {
 	id := getIDParam(c, "cardID")
 	ca, err := h.repository.Find(id, currentUserID(c))

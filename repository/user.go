@@ -12,16 +12,19 @@ import (
 	"local.packages/validator"
 )
 
+// UserRepository ...
 type UserRepository struct {
 	db *gorm.DB
 }
 
+// NewUserRepository is constructor for UserRepository.
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
 		db: db,
 	}
 }
 
+// Create insert a new record to users table.
 func (r *UserRepository) Create(name, email, password string) (*entity.User, []validator.ValidationError) {
 	u := &entity.User{
 		Name:           name,
@@ -36,6 +39,8 @@ func (r *UserRepository) Create(name, email, password string) (*entity.User, []v
 	return u, nil
 }
 
+// SignIn returns instance of User that contain a new session token.
+// returns errors with message if an email or password is invalid.
 func (r *UserRepository) SignIn(email, password string) (*entity.User, []validator.ValidationError) {
 	u := &entity.User{}
 
@@ -59,6 +64,8 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 	return u, nil
 }
 
+// IsSignedIn returns an instance of User that found by session token.
+// returns `false` if the record not found.
 func (r *UserRepository) IsSignedIn(token string) (*entity.User, bool) {
 	u := &entity.User{}
 
@@ -69,6 +76,7 @@ func (r *UserRepository) IsSignedIn(token string) (*entity.User, bool) {
 	return u, true
 }
 
+// EncryptPassword returns the bcrypt hash of the password.
 func (r *UserRepository) EncryptPassword(password string) (string, []validator.ValidationError) {
 	h, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 

@@ -21,6 +21,7 @@ func init() {
 	}
 }
 
+// Get returns an instance of gorm.DB.
 func Get() *gorm.DB {
 	return db
 }

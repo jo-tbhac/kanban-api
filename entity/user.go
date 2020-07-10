@@ -2,6 +2,7 @@ package entity
 
 import "time"
 
+// User is model of users table.
 type User struct {
 	ID             uint      `json:"id"`
 	CreatedAt      time.Time `json:"created_at" gorm:"not null"`

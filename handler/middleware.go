@@ -12,6 +12,8 @@ import (
 	"local.packages/validator"
 )
 
+// Authenticate call a function that validate a session token.
+// map a login user id to context if authentication was valid.
 func (h UserHandler) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("Authorization")
@@ -25,6 +27,7 @@ func (h UserHandler) Authenticate() gin.HandlerFunc {
 	}
 }
 
+// MapIDParamsToContext map URL params that has suffix `ID` to context.
 func MapIDParamsToContext() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		for _, p := range c.Params {
@@ -51,6 +54,7 @@ func MapIDParamsToContext() gin.HandlerFunc {
 	}
 }
 
+// CORSMiddleware is a configure about CORS.
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
