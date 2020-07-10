@@ -5,6 +5,7 @@ import (
 	"local.packages/entity"
 )
 
+// Migrate ...
 func Migrate() {
 	db := db.Get()
 
