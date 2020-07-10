@@ -14,14 +14,19 @@ type cardLabelParams struct {
 	LabelID uint `json:"label_id" binding:"required"`
 }
 
+// CardLabelHandler ...
 type CardLabelHandler struct {
 	repository *repository.CardLabelRepository
 }
 
+// NewCardLabelHandler is constructor for CardLabelHandler.
 func NewCardLabelHandler(r *repository.CardLabelRepository) *CardLabelHandler {
 	return &CardLabelHandler{repository: r}
 }
 
+// CreateCardLabel call a function that create a new record to card_labels table.
+// if creation was successful, returns status 201 and instance of Label as http response.
+// if creation was failure, returns status 400 and error with messages.
 func (h *CardLabelHandler) CreateCardLabel(c *gin.Context) {
 	var p cardLabelParams
 
@@ -49,6 +54,9 @@ func (h *CardLabelHandler) CreateCardLabel(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"label": l})
 }
 
+// DeleteCardLabel call a function that delete a record from card_labels table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
 func (h *CardLabelHandler) DeleteCardLabel(c *gin.Context) {
 	cid := getIDParam(c, "cardID")
 	lid := getIDParam(c, "labelID")

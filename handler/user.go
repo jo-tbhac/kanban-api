@@ -17,14 +17,19 @@ type userParams struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required"`
 }
 
+// UserHandler ...
 type UserHandler struct {
 	repository *repository.UserRepository
 }
 
+// NewUserHandler is constructor for UserHandler.
 func NewUserHandler(r *repository.UserRepository) *UserHandler {
 	return &UserHandler{repository: r}
 }
 
+// CreateUser call function that create a new record to users table.
+// if creation was successful, returns status 201 and a session token as http response.
+// if creation was failure, returns status 400 and error with messages.
 func (h UserHandler) CreateUser(c *gin.Context) {
 	var p userParams
 
