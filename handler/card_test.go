@@ -379,3 +379,52 @@ func TestDeleteCardHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, "invalid request")
 }
+
+func TestSearchCardHandlerShouldReturnsStatusOKWithCardData(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCardHandler(repository.NewCardRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	w := httptest.NewRecorder()
+
+	cardID := uint(3)
+	title := "test"
+
+	req, _ := http.NewRequest(http.MethodGet, "/cards/search", nil)
+	params := req.URL.Query()
+	params.Set("board_id", "1")
+	params.Set("title", title)
+	req.URL.RawQuery = params.Encode()
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	query := "SELECT `cards`.* FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL"
+	preloadQuery := "SELECT * FROM `labels` INNER JOIN `card_labels` ON `card_labels`.`label_id` = `labels`.`id` WHERE `labels`.`deleted_at` IS NULL"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).
+			AddRow(cardID, title))
+
+	mock.ExpectQuery(regexp.QuoteMeta(preloadQuery)).WithArgs(cardID)
+
+	r.GET("cards/search", ch.SearchCard)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]entity.Card{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["cards"][0].ID, cardID)
+	assert.Equal(t, res["cards"][0].Title, title)
+}
