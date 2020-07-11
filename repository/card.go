@@ -142,3 +142,18 @@ func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
 
 	return nil
 }
+
+// Search returns instances of Card that found by Card's title.
+func (r *CardRepository) Search(bid, uid uint, title string) *[]entity.Card {
+	var c []entity.Card
+
+	r.db.Preload("Labels").
+		Joins("Join lists ON lists.id = cards.list_id").
+		Joins("Join boards ON boards.id = lists.board_id").
+		Where("boards.user_id = ?", uid).
+		Where("boards.id = ?", bid).
+		Where("cards.title LIKE ?", "%"+title+"%").
+		Find(&c)
+
+	return &c
+}

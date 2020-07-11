@@ -138,3 +138,20 @@ func (h CardHandler) DeleteCard(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+// SearchCard returns status 200 and slice of Card instance as http response.
+func (h CardHandler) SearchCard(c *gin.Context) {
+	p := struct {
+		Title   string `form:"title"`
+		BoardID uint   `form:"board_id"`
+	}{}
+
+	if err := c.ShouldBindQuery(&p); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	cs := h.repository.Search(p.BoardID, currentUserID(c), p.Title)
+
+	c.JSON(http.StatusOK, gin.H{"cards": cs})
+}
