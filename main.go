@@ -72,6 +72,7 @@ func startServer() {
 	authorized.PATCH("/card/:cardID/:attribute", cardHandler.UpdateCard)
 	authorized.PATCH("/cards/index", cardHandler.UpdateCardIndex)
 	authorized.DELETE("/card/:cardID", cardHandler.DeleteCard)
+	authorized.GET("/cards/search", cardHandler.SearchCard)
 
 	authorized.POST("/card/:cardID/card_label", cardLabelHandler.CreateCardLabel)
 	authorized.DELETE("/card/:cardID/card_label/:labelID", cardLabelHandler.DeleteCardLabel)

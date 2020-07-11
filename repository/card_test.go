@@ -434,3 +434,38 @@ func TestShouldNotDeleteCard(t *testing.T) {
 
 	assert.Equal(t, err[0].Text, "invalid request")
 }
+
+func TestShouldSuccessfullySearchCard(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewCardRepository(db)
+
+	userID := uint(1)
+	boardID := uint(2)
+	cardID := uint(3)
+	labelID := uint(4)
+	title := "sample card"
+
+	query := "SELECT `cards`.* FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL"
+	preloadQuery := "SELECT * FROM `labels` INNER JOIN `card_labels` ON `card_labels`.`label_id` = `labels`.`id` WHERE `labels`.`deleted_at` IS NULL"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).
+			AddRow(cardID, title))
+
+	mock.ExpectQuery(regexp.QuoteMeta(preloadQuery)).
+		WithArgs(cardID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(labelID))
+
+	cs := r.Search(userID, boardID, title)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	for _, c := range *cs {
+		assert.Equal(t, c.ID, cardID)
+	}
+}
