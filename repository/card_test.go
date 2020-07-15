@@ -444,20 +444,13 @@ func TestShouldSuccessfullySearchCard(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 	cardID := uint(3)
-	labelID := uint(4)
 	title := "sample card"
 
-	query := "SELECT `cards`.* FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL"
-	preloadQuery := "SELECT * FROM `labels` INNER JOIN `card_labels` ON `card_labels`.`label_id` = `labels`.`id` WHERE `labels`.`deleted_at` IS NULL"
+	query := "SELECT cards.id FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL"
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).
-			AddRow(cardID, title))
-
-	mock.ExpectQuery(regexp.QuoteMeta(preloadQuery)).
-		WithArgs(cardID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(labelID))
+			AddRow(cardID))
 
 	cs := r.Search(userID, boardID, title)
 
@@ -466,6 +459,6 @@ func TestShouldSuccessfullySearchCard(t *testing.T) {
 	}
 
 	for _, c := range *cs {
-		assert.Equal(t, c.ID, cardID)
+		assert.Equal(t, c, cardID)
 	}
 }
