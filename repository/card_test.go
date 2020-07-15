@@ -458,7 +458,7 @@ func TestShouldSuccessfullySearchCard(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	for _, c := range *cs {
+	for _, c := range cs {
 		assert.Equal(t, c, cardID)
 	}
 }

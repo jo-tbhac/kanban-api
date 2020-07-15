@@ -153,5 +153,9 @@ func (h CardHandler) SearchCard(c *gin.Context) {
 
 	ids := h.repository.Search(p.BoardID, currentUserID(c), p.Title)
 
+	if len(ids) == 0 {
+		ids = make([]uint, 0)
+	}
+
 	c.JSON(http.StatusOK, gin.H{"card_ids": ids})
 }
