@@ -151,7 +151,7 @@ func (h CardHandler) SearchCard(c *gin.Context) {
 		return
 	}
 
-	cs := h.repository.Search(p.BoardID, currentUserID(c), p.Title)
+	ids := h.repository.Search(p.BoardID, currentUserID(c), p.Title)
 
-	c.JSON(http.StatusOK, gin.H{"cards": cs})
+	c.JSON(http.StatusOK, gin.H{"card_ids": ids})
 }
