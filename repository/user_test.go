@@ -25,9 +25,10 @@ func TestShouldSuccessfullyCreateUser(t *testing.T) {
 	createdAt := utils.AnyTime{}
 	updatedAt := utils.AnyTime{}
 
+	query := "INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`) VALUES (?,?,?,?,?,?)"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(
-		"INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`)")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(createdAt, updatedAt, name, email, password, "").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -57,9 +58,10 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 	createdAt := utils.AnyTime{}
 	updatedAt := utils.AnyTime{}
 
+	query := "INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`) VALUES (?,?,?,?,?,?)"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(
-		"INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`)")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(createdAt, updatedAt, name, email, password, "").
 		WillReturnError(fmt.Errorf("Error 1062: Duplicate entry '%s' for key 'email'", email))
 
@@ -89,13 +91,16 @@ func TestShouldSuccessfullySignIn(t *testing.T) {
 	password := "password"
 	passwordDigest, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+	findQuery := "SELECT * FROM `users` WHERE (email = ?) ORDER BY `users`.`id` ASC LIMIT 1"
+	updateQuery := "UPDATE `users` SET `remember_token` = ?, `updated_at` = ? WHERE `users`.`id` = ?"
+
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(email).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "email", "password_digest"}).AddRow(id, email, passwordDigest))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users`")).
+	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -124,7 +129,9 @@ func TestShouldNotSignInWhenEmailDoesNotExist(t *testing.T) {
 	email := "gopher@sample.com"
 	password := "password"
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+	query := "SELECT * FROM `users` WHERE (email = ?) ORDER BY `users`.`id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(email).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -152,7 +159,9 @@ func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
 	password := "invalid_password"
 	passwordDigest, _ := bcrypt.GenerateFromPassword([]byte(registeredPassword), bcrypt.DefaultCost)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+	query := "SELECT * FROM `users` WHERE (email = ?) ORDER BY `users`.`id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(email).
 		WillReturnRows(sqlmock.NewRows([]string{"password_digest"}).AddRow(passwordDigest))
 
@@ -178,7 +187,9 @@ func TestIsSignedInShouldReturnTrueWhenTokenIsValid(t *testing.T) {
 	id := uint(1)
 	token := "sample_token"
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+	query := "SELECT * FROM `users`  WHERE (remember_token = ?) ORDER BY `users`.`id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(token).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(id))
 
@@ -200,7 +211,9 @@ func TestIsSignedInShouldReturnFalseWhenTokenIsInvalid(t *testing.T) {
 
 	token := "sample_token"
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+	query := "SELECT * FROM `users`  WHERE (remember_token = ?) ORDER BY `users`.`id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(token).
 		WillReturnError(gorm.ErrRecordNotFound)
 

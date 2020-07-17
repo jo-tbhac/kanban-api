@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
@@ -50,25 +51,29 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		Color: "#ffffff",
 	}
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, updated_at, name, user_id FROM `boards`")).
+	boardQuery := fmt.Sprintf("SELECT id, updated_at, name, user_id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1", mockBoard.ID)
+	mock.ExpectQuery(regexp.QuoteMeta(boardQuery)).
 		WithArgs(userID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "updated_at", "name", "user_id"}).
 				AddRow(mockBoard.ID, mockBoard.UpdatedAt, mockBoard.Name, userID))
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT lists.id, lists.name, lists.board_id, lists.index FROM `lists`")).
+	listQuery := "SELECT lists.id, lists.name, lists.board_id, lists.index FROM `lists` WHERE `lists`.`deleted_at` IS NULL AND ((`board_id` IN (?))) ORDER BY lists.index asc,`lists`.`id` ASC"
+	mock.ExpectQuery(regexp.QuoteMeta(listQuery)).
 		WithArgs(mockBoard.ID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "board_id", "index"}).
 				AddRow(mockList.ID, mockList.Name, mockList.BoardID, mockList.Index))
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT cards.id, cards.title, cards.description, cards.list_id, cards.index FROM `cards`")).
+	cardQuery := "SELECT cards.id, cards.title, cards.description, cards.list_id, cards.index FROM `cards` WHERE `cards`.`deleted_at` IS NULL AND ((`list_id` IN (?))) ORDER BY cards.index asc,`cards`.`id` ASC"
+	mock.ExpectQuery(regexp.QuoteMeta(cardQuery)).
 		WithArgs(mockList.ID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "title", "description", "list_id", "index"}).
 				AddRow(mockCard.ID, mockCard.Title, mockCard.Description, mockCard.ListID, mockCard.Index))
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT labels.id, labels.name, labels.color, labels.board_id, card_labels.card_id FROM `labels`")).
+	labelQuery := "SELECT labels.id, labels.name, labels.color, labels.board_id, card_labels.card_id FROM `labels` INNER JOIN `card_labels` ON `card_labels`.`label_id` = `labels`.`id` WHERE `labels`.`deleted_at` IS NULL AND ((`card_labels`.`card_id` IN (?)))"
+	mock.ExpectQuery(regexp.QuoteMeta(labelQuery)).
 		WithArgs(mockCard.ID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "color", "card_id"}).
@@ -113,7 +118,8 @@ func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, updated_at, name, user_id FROM `boards`")).
+	query := fmt.Sprintf("SELECT id, updated_at, name, user_id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1", boardID)
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -141,7 +147,8 @@ func TestShouldSuccessfullyFindBoardWithoutRelatedModel(t *testing.T) {
 	updatedAt := time.Now()
 	name := "sampleBoard"
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, updated_at, name, user_id FROM `boards`")).
+	query := fmt.Sprintf("SELECT id, updated_at, name, user_id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1", boardID)
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "updated_at", "name", "user_id"}).
@@ -173,7 +180,8 @@ func TestShouldNotFindBoardWithoutRelatedModel(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, updated_at, name, user_id FROM `boards`")).
+	query := fmt.Sprintf("SELECT id, updated_at, name, user_id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1", boardID)
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -201,8 +209,10 @@ func TestShouldCreateBoard(t *testing.T) {
 	name := strings.Repeat("a", 50)
 	userID := uint(1)
 
+	query := "INSERT INTO `boards` (`created_at`,`updated_at`,`deleted_at`,`name`,`user_id`) VALUES (?,?,?,?,?)"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `boards` (`created_at`,`updated_at`,`deleted_at`,`name`,`user_id`)")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(createdAt, updatedAt, nil, name, userID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -283,8 +293,10 @@ func TestShouldUpdateBoard(t *testing.T) {
 	name := strings.Repeat("b", 50)
 	updatedAt := utils.AnyTime{}
 
+	query := "UPDATE `boards` SET `name` = ?, `updated_at` = ? WHERE `boards`.`deleted_at` IS NULL AND `boards`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `boards` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(name, updatedAt, b.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -358,8 +370,10 @@ func TestShouldSuccessfullyDeleteBoard(t *testing.T) {
 	userID := uint(2)
 	deletedAt := utils.AnyTime{}
 
+	query := "UPDATE `boards` SET `deleted_at`=? WHERE `boards`.`deleted_at` IS NULL AND ((id = ? AND user_id = ?))"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `boards` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, boardID, userID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -384,8 +398,10 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 	userID := uint(2)
 	deletedAt := utils.AnyTime{}
 
+	query := "UPDATE `boards` SET `deleted_at`=? WHERE `boards`.`deleted_at` IS NULL AND ((id = ? AND user_id = ?))"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `boards` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, boardID, userID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 
@@ -414,7 +430,9 @@ func TestShouldSuccessfullySearchBoard(t *testing.T) {
 	boardID := uint(2)
 	name := "sample"
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (name LIKE ?))")).
+	query := "SELECT id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (name LIKE ?))"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, "%"+name+"%").
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(boardID))
