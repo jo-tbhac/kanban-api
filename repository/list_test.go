@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
@@ -23,7 +24,11 @@ func TestShouldSuccessfullyValidateUIDOnListRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards`")).
+	query := fmt.Sprintf(
+		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
+		boardID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id"}).AddRow(boardID, userID))
 
@@ -45,7 +50,11 @@ func TestShouldFailureValidateUIDOnListRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards`")).
+	query := fmt.Sprintf(
+		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
+		boardID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -72,7 +81,11 @@ func TestShouldSuccessfullyFindList(t *testing.T) {
 	listID := uint(2)
 	boardID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id")).
+	query := fmt.Sprintf(
+		"SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id WHERE `lists`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`lists`.`id` = %d)) ORDER BY `lists`.`id` ASC LIMIT 1",
+		listID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "board_id"}).AddRow(listID, boardID))
 
@@ -99,7 +112,11 @@ func TestShouldNotFindList(t *testing.T) {
 	userID := uint(1)
 	listID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id")).
+	query := fmt.Sprintf(
+		"SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id WHERE `lists`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`lists`.`id` = %d)) ORDER BY `lists`.`id` ASC LIMIT 1",
+		listID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -128,12 +145,15 @@ func TestShouldSuccessfullyCreateList(t *testing.T) {
 	boardID := uint(1)
 	index := 1
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `index` FROM `lists`")).
+	findQuery := "SELECT `index` FROM `lists`  WHERE `lists`.`deleted_at` IS NULL AND ((board_id = ?)) ORDER BY `index` desc LIMIT 1"
+	insertQuery := "INSERT INTO `lists` (`created_at`,`updated_at`,`deleted_at`,`name`,`board_id`,`index`) VALUES (?,?,?,?,?,?)"
+
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(boardID).
 		WillReturnRows(sqlmock.NewRows([]string{"index"}).AddRow(index))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists`")).
+	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
 		WithArgs(createdAt, updatedAt, nil, name, boardID, index+1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -218,8 +238,10 @@ func TestShouldSuccessfullyUpdateList(t *testing.T) {
 	updatedAt := utils.AnyTime{}
 	name := strings.Repeat("a", 50)
 
+	query := "UPDATE `lists` SET `name` = ?, `updated_at` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(name, updatedAt, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -326,8 +348,10 @@ func TestShouldSuccessfullyDeleteList(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
+	query := "UPDATE `lists` SET `deleted_at` = ?, `index` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, index, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -358,8 +382,10 @@ func TestShouldNotDeleteList(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
+	query := "UPDATE `lists` SET `deleted_at` = ?, `index` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, index, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 

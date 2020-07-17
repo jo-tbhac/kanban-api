@@ -13,7 +13,7 @@ import (
 	"local.packages/utils"
 )
 
-func TestShouldSuccessfullyValidateUIDOnCardLabelRipository(t *testing.T) {
+func TestShouldSuccessfullyValidateUIDOnCardLabelRepository(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
 
@@ -23,7 +23,9 @@ func TestShouldSuccessfullyValidateUIDOnCardLabelRipository(t *testing.T) {
 	cardID := uint(2)
 	labelID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id")).
+	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(labelID, cardID, userID).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(userID))
 
@@ -46,7 +48,9 @@ func TestShouldFailureValidateUIDOnCardLabelRepository(t *testing.T) {
 	cardID := uint(2)
 	labelID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id")).
+	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(labelID, cardID, userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -72,13 +76,16 @@ func TestShouldSuccessfullyCreateCardLabel(t *testing.T) {
 	labelID := uint(1)
 	cardID := uint(2)
 
+	insertQuery := "INSERT INTO `card_labels` (`card_id`,`label_id`) VALUES (?,?)"
+	findQuery := "SELECT * FROM `labels` WHERE `labels`.`deleted_at` IS NULL AND ((`id` = ?))"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `card_labels` (`card_id`,`label_id`)")).
+	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
 		WithArgs(cardID, labelID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `labels`")).
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(labelID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(labelID))
 
@@ -104,8 +111,10 @@ func TestShouldNotCreateCardLabelWhenDuplicatePrimaryKey(t *testing.T) {
 	labelID := uint(1)
 	cardID := uint(2)
 
+	query := "INSERT INTO `card_labels` (`card_id`,`label_id`) VALUES (?,?)"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `card_labels` (`card_id`,`label_id`)")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(cardID, labelID).
 		WillReturnError(fmt.Errorf("Error 1062: Duplicate entry '%d-%d' for key 'email'", cardID, labelID))
 
@@ -134,7 +143,9 @@ func TestShouldSuccessfullyFindCardLabel(t *testing.T) {
 	cardID := uint(2)
 	userID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id")).
+	query := "SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?) ORDER BY `card_labels`.`card_id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, labelID, cardID).
 		WillReturnRows(sqlmock.NewRows([]string{"card_id", "label_id"}).AddRow(cardID, labelID))
 
@@ -162,7 +173,9 @@ func TestShouldNotFindCardLabel(t *testing.T) {
 	cardID := uint(2)
 	userID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id")).
+	query := "SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?) ORDER BY `card_labels`.`card_id` ASC LIMIT 1"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, labelID, cardID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -190,8 +203,10 @@ func TestShouldSuccessfullyDeleteCardLabel(t *testing.T) {
 		LabelID: uint(2),
 	}
 
+	query := "DELETE FROM `card_labels` WHERE `card_labels`.`card_id` = ? AND `card_labels`.`label_id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `card_labels`")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(cl.CardID, cl.LabelID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -217,8 +232,10 @@ func TestShouldNotDeleteCardLabel(t *testing.T) {
 		LabelID: uint(2),
 	}
 
+	query := "DELETE FROM `card_labels` WHERE `card_labels`.`card_id` = ? AND `card_labels`.`label_id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `card_labels`")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(cl.CardID, cl.LabelID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 

@@ -24,7 +24,11 @@ func TestShouldSuccessfullyValidateUIDOnLabelRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards`")).
+	query := fmt.Sprintf(
+		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
+		boardID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id"}).AddRow(boardID, userID))
 
@@ -46,7 +50,11 @@ func TestShouldFailureValidateUIDOnLabelRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT user_id FROM `boards`")).
+	query := fmt.Sprintf(
+		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
+		boardID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -73,7 +81,11 @@ func TestShouldSuccessfullyFindLabel(t *testing.T) {
 	labelID := uint(2)
 	boardID := uint(3)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `labels`.* FROM `labels` Join boards on boards.id = labels.board_id")).
+	query := fmt.Sprintf(
+		"SELECT `labels`.* FROM `labels` Join boards on boards.id = labels.board_id WHERE `labels`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`labels`.`id` = %d)) ORDER BY `labels`.`id` ASC LIMIT 1",
+		labelID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "board_id"}).AddRow(labelID, boardID))
 
@@ -100,7 +112,11 @@ func TestShouldNotFindLabel(t *testing.T) {
 	userID := uint(1)
 	labelID := uint(2)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT `labels`.* FROM `labels` Join boards on boards.id = labels.board_id")).
+	query := fmt.Sprintf(
+		"SELECT `labels`.* FROM `labels` Join boards on boards.id = labels.board_id WHERE `labels`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`labels`.`id` = %d)) ORDER BY `labels`.`id` ASC LIMIT 1",
+		labelID)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -154,8 +170,10 @@ func TestShouldSuccessfullyCreateLabel(t *testing.T) {
 			createdAt := utils.AnyTime{}
 			updatedAt := utils.AnyTime{}
 
+			query := "INSERT INTO `labels` (`created_at`,`updated_at`,`deleted_at`,`name`,`color`,`board_id`) VALUES (?,?,?,?,?,?)"
+
 			mock.ExpectBegin()
-			mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `labels` (`created_at`,`updated_at`,`deleted_at`,`name`,`color`,`board_id`)")).
+			mock.ExpectExec(regexp.QuoteMeta(query)).
 				WithArgs(createdAt, updatedAt, nil, tc.labelName, tc.color, tc.boardID).
 				WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -290,8 +308,10 @@ func TestShouldSuccessfullyUpdateLabel(t *testing.T) {
 				Color: "#000",
 			}
 
+			query := "UPDATE `labels` SET `color` = ?, `name` = ?, `updated_at` = ? WHERE `labels`.`deleted_at` IS NULL AND `labels`.`id` = ?"
+
 			mock.ExpectBegin()
-			mock.ExpectExec(regexp.QuoteMeta("UPDATE `labels` SET")).
+			mock.ExpectExec(regexp.QuoteMeta(query)).
 				WithArgs(tc.color, tc.labelName, updatedAt, l.ID).
 				WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -397,8 +417,10 @@ func TestShouldSuccessfullyDeleteLabel(t *testing.T) {
 
 	deletedAt := utils.AnyTime{}
 
+	query := "UPDATE `labels` SET `deleted_at`=? WHERE `labels`.`deleted_at` IS NULL AND `labels`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `labels` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -428,8 +450,10 @@ func TestShouldNotDeleteLabel(t *testing.T) {
 
 	deletedAt := utils.AnyTime{}
 
+	query := "UPDATE `labels` SET `deleted_at`=? WHERE `labels`.`deleted_at` IS NULL AND `labels`.`id` = ?"
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `labels` SET")).
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WithArgs(deletedAt, l.ID).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 
