@@ -11,7 +11,7 @@ import (
 )
 
 type boardParams struct {
-	Name string `json:"name"`
+	Name string `json:"name" form:"name"`
 }
 
 // BoardHandler ...
@@ -109,4 +109,23 @@ func (h BoardHandler) DeleteBoard(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+// SearchBoard returns status 200 and slice of Board ids as http response.
+func (h BoardHandler) SearchBoard(c *gin.Context) {
+	var p boardParams
+
+	if err := c.ShouldBindQuery(&p); err != nil {
+		log.Printf("fail to bind query: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	ids := h.repository.Search(p.Name, currentUserID(c))
+
+	if len(ids) == 0 {
+		ids = make([]uint, 0)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"board_ids": ids})
 }

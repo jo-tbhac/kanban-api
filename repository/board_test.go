@@ -403,3 +403,29 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 
 	assert.Equal(t, err[0].Text, "invalid request")
 }
+
+func TestShouldSuccessfullySearchBoard(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewBoardRepository(db)
+
+	userID := uint(1)
+	boardID := uint(2)
+	name := "sample"
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (name LIKE ?))")).
+		WithArgs(userID, "%"+name+"%").
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(boardID))
+
+	ids := r.Search(name, userID)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	for _, id := range ids {
+		assert.Equal(t, id, boardID)
+	}
+}
