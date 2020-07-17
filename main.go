@@ -57,6 +57,7 @@ func startServer() {
 	authorized.GET("/board/:boardID", boardHandler.ShowBoard)
 	authorized.PATCH("/board/:boardID", boardHandler.UpdateBoard)
 	authorized.DELETE("/board/:boardID", boardHandler.DeleteBoard)
+	authorized.GET("/boards/search", boardHandler.SearchBoard)
 
 	authorized.POST("/board/:boardID/label", labelHandler.CreateLabel)
 	authorized.GET("/board/:boardID/labels", labelHandler.IndexLabel)

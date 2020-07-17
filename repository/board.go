@@ -99,3 +99,15 @@ func (r *BoardRepository) GetAll(uid uint) *[]entity.Board {
 
 	return &bs
 }
+
+// Search returns ids of Board that found by Board's name.
+func (r *BoardRepository) Search(name string, uid uint) []uint {
+	var ids []uint
+
+	r.db.Model(&entity.Board{}).
+		Where("user_id = ?", uid).
+		Where("name LIKE ?", "%"+name+"%").
+		Pluck("id", &ids)
+
+	return ids
+}
