@@ -143,7 +143,7 @@ func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
 	return nil
 }
 
-// Search returns instances of Card that found by Card's title.
+// Search returns ids of Card that found by Card's title.
 func (r *CardRepository) Search(bid, uid uint, title string) []uint {
 	var ids []uint
 

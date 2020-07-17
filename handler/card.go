@@ -139,7 +139,7 @@ func (h CardHandler) DeleteCard(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// SearchCard returns status 200 and slice of Card instance as http response.
+// SearchCard returns status 200 and slice of Card ids as http response.
 func (h CardHandler) SearchCard(c *gin.Context) {
 	p := struct {
 		Title   string `form:"title"`
