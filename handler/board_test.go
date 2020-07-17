@@ -403,3 +403,47 @@ func TestDeleteBoardHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, "invalid request")
 }
+
+func TestSearchBoardHandlerShouldReturnsStatusOKWithBoardIDs(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewBoardHandler(repository.NewBoardRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	w := httptest.NewRecorder()
+
+	name := "test"
+	boardID := uint(2)
+
+	req, _ := http.NewRequest(http.MethodGet, "/boards/search", nil)
+	params := req.URL.Query()
+	params.Set("name", name)
+	req.URL.RawQuery = params.Encode()
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	query := "SELECT id FROM `boards` WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (name LIKE ?))"
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(boardID))
+
+	r.GET("boards/search", ch.SearchBoard)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]uint{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["board_ids"][0], boardID)
+}
