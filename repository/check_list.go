@@ -31,3 +31,13 @@ func (r *CheckListRepository) Create(title string, cid uint) (*entity.CheckList,
 
 	return c, nil
 }
+
+// Update update a record's title in a check_lists table
+func (r *CheckListRepository) Update(c *entity.CheckList, title string) []validator.ValidationError {
+	if err := r.db.Model(c).Update("title", title).Error; err != nil {
+		return validator.FormattedValidationError(err)
+	}
+
+	return nil
+}
+
