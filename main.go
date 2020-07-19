@@ -20,6 +20,7 @@ var (
 	listHandler      *handler.ListHandler
 	cardHandler      *handler.CardHandler
 	cardLabelHandler *handler.CardLabelHandler
+	checkListHandler *handler.CheckListHandler
 )
 
 func main() {
@@ -36,6 +37,7 @@ func main() {
 	listHandler = handler.NewListHandler(repository.NewListRepository(db))
 	cardHandler = handler.NewCardHandler(repository.NewCardRepository(db))
 	cardLabelHandler = handler.NewCardLabelHandler(repository.NewCardLabelRepository(db))
+	checkListHandler = handler.NewCheckListHandler(repository.NewCheckListRepository(db))
 
 	migration.Migrate()
 	startServer()
@@ -77,6 +79,8 @@ func startServer() {
 
 	authorized.POST("/card/:cardID/card_label", cardLabelHandler.CreateCardLabel)
 	authorized.DELETE("/card/:cardID/card_label/:labelID", cardLabelHandler.DeleteCardLabel)
+
+	authorized.POST("/card/:cardID/check_list", checkListHandler.CreateCheckList)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
