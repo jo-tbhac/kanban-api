@@ -41,3 +41,11 @@ func (r *CheckListRepository) Update(c *entity.CheckList, title string) []valida
 	return nil
 }
 
+// Delete delete a record from a checl_lists table.
+func (r *CheckListRepository) Delete(c *entity.CheckList) []validator.ValidationError {
+	if err := r.db.Delete(c).Error; err != nil {
+		return validator.FormattedMySQLError(err)
+	}
+
+	return nil
+}
