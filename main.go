@@ -81,6 +81,7 @@ func startServer() {
 	authorized.DELETE("/card/:cardID/card_label/:labelID", cardLabelHandler.DeleteCardLabel)
 
 	authorized.POST("/card/:cardID/check_list", checkListHandler.CreateCheckList)
+	authorized.PATCH("/check_list/:checkListID", checkListHandler.UpdateCheckList)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

@@ -36,9 +36,20 @@ func (r *CheckListRepository) ValidateUID(cid, uid uint) []validator.ValidationE
 }
 
 // Find returns a record of CheckList that found by id.
-// func (r *CheckListRepository) Find(id, uid) *entity.CheckList {
+func (r *CheckListRepository) Find(id, uid uint) (*entity.CheckList, []validator.ValidationError) {
+	var c entity.CheckList
 
-// }
+	if r.db.Joins("Join cards ON check_lists.card_id = cards.id").
+		Joins("Join lists ON cards.list_id = lists.id").
+		Joins("Join boards ON lists.board_id = boards.id").
+		Where("boards.user_id = ?", uid).
+		First(&c, id).
+		RecordNotFound() {
+		return &c, validator.NewValidationErrors("invalid parameters")
+	}
+
+	return &c, nil
+}
 
 // Create insert a new record to a check_lists table.
 func (r *CheckListRepository) Create(title string, cid uint) (*entity.CheckList, []validator.ValidationError) {
