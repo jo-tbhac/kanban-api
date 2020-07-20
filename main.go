@@ -14,13 +14,14 @@ import (
 )
 
 var (
-	userHandler      *handler.UserHandler
-	boardHandler     *handler.BoardHandler
-	labelHandler     *handler.LabelHandler
-	listHandler      *handler.ListHandler
-	cardHandler      *handler.CardHandler
-	cardLabelHandler *handler.CardLabelHandler
-	checkListHandler *handler.CheckListHandler
+	userHandler          *handler.UserHandler
+	boardHandler         *handler.BoardHandler
+	labelHandler         *handler.LabelHandler
+	listHandler          *handler.ListHandler
+	cardHandler          *handler.CardHandler
+	cardLabelHandler     *handler.CardLabelHandler
+	checkListHandler     *handler.CheckListHandler
+	checkListItemHandler *handler.CheckListItemHandler
 )
 
 func main() {
@@ -38,6 +39,7 @@ func main() {
 	cardHandler = handler.NewCardHandler(repository.NewCardRepository(db))
 	cardLabelHandler = handler.NewCardLabelHandler(repository.NewCardLabelRepository(db))
 	checkListHandler = handler.NewCheckListHandler(repository.NewCheckListRepository(db))
+	checkListItemHandler = handler.NewCheckListItemHandler(repository.NewCheckListItemRepository(db))
 
 	migration.Migrate()
 	startServer()
@@ -83,6 +85,8 @@ func startServer() {
 	authorized.POST("/card/:cardID/check_list", checkListHandler.CreateCheckList)
 	authorized.PATCH("/check_list/:checkListID", checkListHandler.UpdateCheckList)
 	authorized.DELETE("/check_list/:checkListID", checkListHandler.DeleteCheckList)
+
+	authorized.POST("/check_list/:checkListID/item", checkListItemHandler.CreateCheckListItem)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
