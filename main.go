@@ -82,6 +82,7 @@ func startServer() {
 
 	authorized.POST("/card/:cardID/check_list", checkListHandler.CreateCheckList)
 	authorized.PATCH("/check_list/:checkListID", checkListHandler.UpdateCheckList)
+	authorized.DELETE("/check_list/:checkListID", checkListHandler.DeleteCheckList)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
