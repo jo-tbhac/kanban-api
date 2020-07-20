@@ -53,3 +53,33 @@ func (h CheckListItemHandler) CreateCheckListItem(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"check_list_item": item})
 }
+
+// UpdateCheckListItem call a function that update a record' name in check_list_items table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
+func (h CheckListItemHandler) UpdateCheckListItem(c *gin.Context) {
+	var p checkListItemParams
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	id := getIDParam(c, "checkListItemID")
+
+	item, err := h.repository.Find(id, currentUserID(c))
+
+	if err != nil {
+		log.Println("uid does not match board.user_id associated with the check_list_item")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	if err := h.repository.Update(item, p.Name); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

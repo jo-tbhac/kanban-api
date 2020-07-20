@@ -42,7 +42,7 @@ func (r *CheckListItemRepository) ValidateUID(cid, uid uint) []validator.Validat
 func (r *CheckListItemRepository) Find(id, uid uint) (*entity.CheckListItem, []validator.ValidationError) {
 	var item entity.CheckListItem
 
-	if r.db.Joins("Join check_lists ON check_lists_item.check_list_id = check_lists.id").
+	if r.db.Joins("Join check_lists ON check_list_items.check_list_id = check_lists.id").
 		Joins("Join cards ON check_lists.card_id = cards.id").
 		Joins("Join lists ON cards.list_id = lists.id").
 		Joins("Join boards ON lists.board_id = boards.id").
@@ -69,3 +69,11 @@ func (r *CheckListItemRepository) Create(name string, cid uint) (*entity.CheckLi
 	return item, nil
 }
 
+// Update update a record's name in a check_list_items table.
+func (r *CheckListItemRepository) Update(item *entity.CheckListItem, name string) []validator.ValidationError {
+	if err := r.db.Model(item).Update("name", name).Error; err != nil {
+		return validator.FormattedValidationError(err)
+	}
+
+	return nil
+}
