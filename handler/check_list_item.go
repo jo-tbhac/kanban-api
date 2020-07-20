@@ -54,7 +54,7 @@ func (h CheckListItemHandler) CreateCheckListItem(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"check_list_item": item})
 }
 
-// UpdateCheckListItem call a function that update a record' name in check_list_items table.
+// UpdateCheckListItem call a function that update a record in check_list_items table.
 // if deletion was successful, returns status 200.
 // if deletion was failure, returns status 400 and errors with message.
 func (h CheckListItemHandler) UpdateCheckListItem(c *gin.Context) {
@@ -76,8 +76,19 @@ func (h CheckListItemHandler) UpdateCheckListItem(c *gin.Context) {
 		return
 	}
 
-	if err := h.repository.Update(item, p.Name); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+	switch c.Param("attribute") {
+	case "name":
+		if err := h.repository.Update(item, p.Name); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+			return
+		}
+	case "check":
+		if err := h.repository.Check(item, p.Check); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+			return
+		}
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
 		return
 	}
 

@@ -77,3 +77,13 @@ func (r *CheckListItemRepository) Update(item *entity.CheckListItem, name string
 
 	return nil
 }
+
+// Check update a record's column of check in a check_list_items table.
+func (r *CheckListItemRepository) Check(item *entity.CheckListItem, check bool) []validator.ValidationError {
+	if err := r.db.Model(item).Update("check", check).Error; err != nil {
+		return validator.FormattedValidationError(err)
+	}
+
+	return nil
+}
+
