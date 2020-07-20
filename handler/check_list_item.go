@@ -94,3 +94,25 @@ func (h CheckListItemHandler) UpdateCheckListItem(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+// DeleteCheckListItem call a function that delete a record from cards table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
+func (h CheckListItemHandler) DeleteCheckListItem(c *gin.Context) {
+	id := getIDParam(c, "checkListItemID")
+
+	item, err := h.repository.Find(id, currentUserID(c))
+
+	if err != nil {
+		log.Println("uid does not match board.user_id associated with the check_list_item")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	if err := h.repository.Delete(item); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

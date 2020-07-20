@@ -87,3 +87,12 @@ func (r *CheckListItemRepository) Check(item *entity.CheckListItem, check bool) 
 	return nil
 }
 
+// Delete delete a record from a check_list_items table
+func (r *CheckListItemRepository) Delete(item *entity.CheckListItem) []validator.ValidationError {
+	if rslt := r.db.Delete(item); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete check_list: %v", rslt.Error)
+		return validator.NewValidationErrors("invalid request")
+	}
+
+	return nil
+}
