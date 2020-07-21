@@ -278,3 +278,76 @@ func TestDeleteCheckListHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, "invalid request")
 }
+
+func TestIndexCheckListHandlerShouldReturnsStatusOKWithCheckListData(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCheckListHandler(repository.NewCheckListRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	boardID := uint(1)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/board/%d/check_list", boardID), nil)
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	mockCheckList := entity.CheckList{
+		ID:     uint(3),
+		Title:  "mockCheckList",
+		CardID: uint(4),
+	}
+
+	mockCheckListItem := entity.CheckListItem{
+		ID:          uint(5),
+		Name:        "mockCheckListItem",
+		Check:       false,
+		CheckListID: mockCheckList.ID,
+	}
+
+	checkListQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_lists.id, check_lists.title, check_lists.card_id
+		FROM 'check_lists'`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListQuery)).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "title", "card_id"}).
+				AddRow(mockCheckList.ID, mockCheckList.Title, mockCheckList.CardID))
+
+	checkListItemQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_list_items.id, check_list_items.name, check_list_items.check_list_id, check_list_items.check
+		FROM 'check_list_items'
+		WHERE ('check_list_id' IN (?))`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListItemQuery)).
+		WithArgs(mockCheckListItem.CheckListID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "check", "check_list_id"}).
+				AddRow(mockCheckListItem.ID, mockCheckListItem.Name, mockCheckListItem.Check, mockCheckListItem.CheckListID))
+
+	r.GET("/board/:boardID/check_list", ch.IndexCheckList)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]entity.CheckList{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["check_lists"][0].ID, mockCheckList.ID)
+	assert.Equal(t, res["check_lists"][0].ID, mockCheckList.ID)
+	assert.Equal(t, res["check_lists"][0].Title, mockCheckList.Title)
+	assert.Equal(t, res["check_lists"][0].CardID, mockCheckList.CardID)
+	assert.Equal(t, res["check_lists"][0].Items[0].ID, mockCheckListItem.ID)
+	assert.Equal(t, res["check_lists"][0].Items[0].Name, mockCheckListItem.Name)
+	assert.Equal(t, res["check_lists"][0].Items[0].Check, mockCheckListItem.Check)
+	assert.Equal(t, res["check_lists"][0].Items[0].CheckListID, mockCheckListItem.CheckListID)
+}
