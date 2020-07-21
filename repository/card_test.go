@@ -24,7 +24,13 @@ func TestShouldSuccessfullyValidateUIDOnCardRepository(t *testing.T) {
 	listID := uint(1)
 	userID := uint(2)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id WHERE `boards`.`deleted_at` IS NULL AND ((lists.id = ?) AND (boards.user_id = ?)) ORDER BY `boards`.`id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((lists.id = ?) AND (boards.user_id = ?))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(listID, userID).
@@ -48,7 +54,13 @@ func TestShouldFailureValidateUIDOnCardRepository(t *testing.T) {
 	listID := uint(1)
 	userID := uint(2)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id WHERE `boards`.`deleted_at` IS NULL AND ((lists.id = ?) AND (boards.user_id = ?)) ORDER BY `boards`.`id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((lists.id = ?) AND (boards.user_id = ?))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(listID, userID).
@@ -79,11 +91,16 @@ func TestShouldSuccessfullyFindCard(t *testing.T) {
 	description := "sample description"
 	listID := uint(3)
 
-	query := fmt.Sprintf(
-		"SELECT `cards`.* FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`cards`.`id` = %d)) ORDER BY `cards`.`id` ASC LIMIT 1",
-		cardID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'cards'.*
+		FROM 'cards'
+		Join lists ON lists.id = cards.list_id
+		Join boards ON boards.id = lists.board_id
+		WHERE 'cards'.'deleted_at' IS NULL AND ((boards.user_id = ?) AND ('cards'.'id' = %d))
+		ORDER BY 'cards'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, cardID))).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "title", "description", "list_id"}).
 			AddRow(cardID, title, description, listID))
@@ -113,11 +130,17 @@ func TestShouldNotFindCard(t *testing.T) {
 	userID := uint(1)
 	cardID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT `cards`.* FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`cards`.`id` = %d)) ORDER BY `cards`.`id` ASC LIMIT 1",
-		cardID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'cards'.*
+		FROM 'cards'
+		Join lists ON lists.id = cards.list_id
+		Join boards ON boards.id = lists.board_id
+		WHERE 'cards'.'deleted_at' IS NULL AND ((boards.user_id = ?) AND ('cards'.'id' = %d))
+		ORDER BY 'cards'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).WithArgs(userID).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, cardID))).
+		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
 	_, err := r.Find(cardID, userID)
@@ -146,8 +169,16 @@ func TestShouldSuccessfullyCreateCard(t *testing.T) {
 	description := ""
 	preIndex := 0
 
-	query := "SELECT `index` FROM `cards` WHERE `cards`.`deleted_at` IS NULL AND ((list_id = ?)) ORDER BY `index` desc LIMIT 1"
-	insertQuery := "INSERT INTO `cards` (`created_at`,`updated_at`,`deleted_at`,`title`,`description`,`list_id`,`index`) VALUES (?,?,?,?,?,?,?)"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'index'
+		FROM 'cards'
+		WHERE 'cards'.'deleted_at' IS NULL AND ((list_id = ?))
+		ORDER BY 'index' desc
+		LIMIT 1`)
+
+	insertQuery := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'cards' ('created_at','updated_at','deleted_at','title','description','list_id','index')
+		VALUES (?,?,?,?,?,?,?)`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(listID).
@@ -207,7 +238,12 @@ func TestShouldNotCreateCard(t *testing.T) {
 
 			r := NewCardRepository(db)
 
-			query := "SELECT `index` FROM `cards` WHERE `cards`.`deleted_at` IS NULL AND ((list_id = ?)) ORDER BY `index` desc LIMIT 1"
+			query := utils.ReplaceQuotationForQuery(`
+				SELECT 'index'
+				FROM 'cards'
+				WHERE 'cards'.'deleted_at' IS NULL AND ((list_id = ?))
+				ORDER BY 'index' desc
+				LIMIT 1`)
 
 			mock.ExpectQuery(regexp.QuoteMeta(query)).
 				WithArgs(tc.listID).
@@ -247,7 +283,10 @@ func TestShouldSuccessfullyUpdateCardTitle(t *testing.T) {
 		Description: description,
 	}
 
-	query := "UPDATE `cards` SET `title` = ?, `updated_at` = ? WHERE `cards`.`deleted_at` IS NULL AND `cards`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'cards'
+		SET 'title' = ?, 'updated_at' = ?
+		WHERE 'cards'.'deleted_at' IS NULL AND 'cards'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -347,7 +386,10 @@ func TestShouldSuccessfullyUpdateCardDescription(t *testing.T) {
 				Description: "previous description",
 			}
 
-			query := "UPDATE `cards` SET `description` = ?, `updated_at` = ? WHERE `cards`.`deleted_at` IS NULL AND `cards`.`id` = ?"
+			query := utils.ReplaceQuotationForQuery(`
+				UPDATE 'cards'
+				SET 'description' = ?, 'updated_at' = ?
+				WHERE 'cards'.'deleted_at' IS NULL AND 'cards'.'id' = ?`)
 
 			mock.ExpectBegin()
 			mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -386,9 +428,13 @@ func TestShouldSuccessfullyUpdateCardIndex(t *testing.T) {
 		{ID: 3, Index: 2, ListID: 1},
 	}
 
-	q := "UPDATE `cards` SET `index` = ELT(FIELD(id,1,2,3),1,3,2), `list_id` = ELT(FIELD(id,1,2,3),1,1,1) WHERE id IN (1,2,3)"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'cards'
+		SET 'index' = ELT(FIELD(id,1,2,3),1,3,2),
+		'list_id' = ELT(FIELD(id,1,2,3),1,1,1)
+		WHERE id IN (1,2,3)`)
 
-	mock.ExpectExec(regexp.QuoteMeta(q)).WillReturnResult(sqlmock.NewResult(1, 3))
+	mock.ExpectExec(regexp.QuoteMeta(query)).WillReturnResult(sqlmock.NewResult(1, 3))
 
 	if err := r.UpdateIndex(params); err != nil {
 		t.Errorf("was not expected an error. %v", err)
@@ -414,7 +460,10 @@ func TestShouldSuccessfullyDeleteCard(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
-	query := "UPDATE `cards` SET `deleted_at` = ?, `index` = ? WHERE `cards`.`deleted_at` IS NULL AND `cards`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'cards'
+		SET 'deleted_at' = ?, 'index' = ?
+		WHERE 'cards'.'deleted_at' IS NULL AND 'cards'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -450,7 +499,10 @@ func TestShouldNotDeleteCard(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
-	query := "UPDATE `cards` SET `deleted_at` = ?, `index` = ? WHERE `cards`.`deleted_at` IS NULL AND `cards`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'cards'
+		SET 'deleted_at' = ?, 'index' = ?
+		WHERE 'cards'.'deleted_at' IS NULL AND 'cards'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -483,7 +535,17 @@ func TestShouldSuccessfullySearchCard(t *testing.T) {
 	cardID := uint(3)
 	title := "sample card"
 
-	query := "SELECT cards.id FROM `cards` Join lists ON lists.id = cards.list_id Join boards ON boards.id = lists.board_id WHERE `cards`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (boards.id = ?) AND (cards.title LIKE ?) AND (lists.deleted_at IS NULL)) ORDER BY cards.list_id asc"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT cards.id
+		FROM 'cards'
+		Join lists ON lists.id = cards.list_id
+		Join boards ON boards.id = lists.board_id
+		WHERE 'cards'.'deleted_at' IS NULL
+		AND ((boards.user_id = ?)
+		AND (boards.id = ?)
+		AND (cards.title LIKE ?)
+		AND (lists.deleted_at IS NULL))
+		ORDER BY cards.list_id asc`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, boardID, "%"+title+"%").

@@ -22,7 +22,14 @@ func TestShouldSuccessfullyValidateUIDOnCheckListRepository(t *testing.T) {
 	userID := uint(1)
 	cardID := uint(2)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((cards.id = ?) AND (boards.user_id = ?)) ORDER BY `boards`.`id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		Join cards ON lists.id = cards.list_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((cards.id = ?) AND (boards.user_id = ?))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(cardID, userID).
@@ -46,7 +53,14 @@ func TestShouldFailureValidateUIDOnCheckListRepository(t *testing.T) {
 	userID := uint(1)
 	cardID := uint(2)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((cards.id = ?) AND (boards.user_id = ?)) ORDER BY `boards`.`id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		Join cards ON lists.id = cards.list_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((cards.id = ?) AND (boards.user_id = ?))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(cardID, userID).
@@ -74,11 +88,17 @@ func TestShouldSuccessfullyFindCheckList(t *testing.T) {
 	userID := uint(1)
 	checkListID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT `check_lists`.* FROM `check_lists` Join cards ON check_lists.card_id = cards.id Join lists ON cards.list_id = lists.id Join boards ON lists.board_id = boards.id WHERE (boards.user_id = ?) AND (`check_lists`.`id` = %d) ORDER BY `check_lists`.`id` ASC LIMIT 1",
-		checkListID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'check_lists'.*
+		FROM 'check_lists'
+		Join cards ON check_lists.card_id = cards.id
+		Join lists ON cards.list_id = lists.id
+		Join boards ON lists.board_id = boards.id
+		WHERE (boards.user_id = ?) AND ('check_lists'.'id' = %d)
+		ORDER BY 'check_lists'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, checkListID))).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(checkListID))
 
@@ -104,11 +124,17 @@ func TestShouldNotFindCheckList(t *testing.T) {
 	userID := uint(1)
 	checkListID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT `check_lists`.* FROM `check_lists` Join cards ON check_lists.card_id = cards.id Join lists ON cards.list_id = lists.id Join boards ON lists.board_id = boards.id WHERE (boards.user_id = ?) AND (`check_lists`.`id` = %d) ORDER BY `check_lists`.`id` ASC LIMIT 1",
-		checkListID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'check_lists'.*
+		FROM 'check_lists'
+		Join cards ON check_lists.card_id = cards.id
+		Join lists ON cards.list_id = lists.id
+		Join boards ON lists.board_id = boards.id
+		WHERE (boards.user_id = ?) AND ('check_lists'.'id' = %d)
+		ORDER BY 'check_lists'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, checkListID))).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -136,7 +162,9 @@ func TestShouldSuccessfullyCreateCheckList(t *testing.T) {
 	title := "new check list"
 	cardID := uint(1)
 
-	query := "INSERT INTO `check_lists` (`created_at`,`updated_at`,`title`,`card_id`) VALUES (?,?,?,?)"
+	query := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'check_lists' ('created_at','updated_at','title','card_id')
+		VALUES (?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).

@@ -25,7 +25,9 @@ func TestShouldSuccessfullyCreateUser(t *testing.T) {
 	createdAt := utils.AnyTime{}
 	updatedAt := utils.AnyTime{}
 
-	query := "INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`) VALUES (?,?,?,?,?,?)"
+	query := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token')
+		VALUES (?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -58,7 +60,9 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 	createdAt := utils.AnyTime{}
 	updatedAt := utils.AnyTime{}
 
-	query := "INSERT INTO `users` (`created_at`,`updated_at`,`name`,`email`,`password_digest`,`remember_token`) VALUES (?,?,?,?,?,?)"
+	query := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token')
+		VALUES (?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
