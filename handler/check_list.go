@@ -104,3 +104,10 @@ func (h CheckListHandler) DeleteCheckList(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+// IndexCheckList returns status 200 and slice of CheckList instance as http response.
+func (h CheckListHandler) IndexCheckList(c *gin.Context) {
+	bid := getIDParam(c, "boardID")
+	cs := h.repository.GetAll(bid, currentUserID(c))
+	c.JSON(http.StatusOK, gin.H{"check_lists": cs})
+}
