@@ -115,7 +115,7 @@ func TestShouldNotFindCheckList(t *testing.T) {
 	_, err := r.Find(checkListID, userID)
 
 	if err == nil {
-		t.Errorf("was not expected an error. %v", err)
+		t.Errorf("was expected an error, but did not recieved it.")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
