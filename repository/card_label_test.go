@@ -23,7 +23,13 @@ func TestShouldSuccessfullyValidateUIDOnCardLabelRepository(t *testing.T) {
 	cardID := uint(2)
 	labelID := uint(3)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		Join labels ON boards.id = labels.board_id
+		Join cards ON lists.id = cards.list_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(labelID, cardID, userID).
@@ -48,7 +54,13 @@ func TestShouldFailureValidateUIDOnCardLabelRepository(t *testing.T) {
 	cardID := uint(2)
 	labelID := uint(3)
 
-	query := "SELECT user_id FROM `boards` Join lists ON boards.id = lists.board_id Join labels ON boards.id = labels.board_id Join cards ON lists.id = cards.list_id WHERE `boards`.`deleted_at` IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		Join lists ON boards.id = lists.board_id
+		Join labels ON boards.id = labels.board_id
+		Join cards ON lists.id = cards.list_id
+		WHERE 'boards'.'deleted_at' IS NULL AND ((labels.id = ?) AND (cards.id = ?) AND (boards.user_id = ?))`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(labelID, cardID, userID).
@@ -143,7 +155,14 @@ func TestShouldSuccessfullyFindCardLabel(t *testing.T) {
 	cardID := uint(2)
 	userID := uint(3)
 
-	query := "SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?) ORDER BY `card_labels`.`card_id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'card_labels'.*
+		FROM 'card_labels'
+		Join labels ON card_labels.label_id = labels.id
+		Join boards ON labels.board_id = boards.id
+		WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?)
+		ORDER BY 'card_labels'.'card_id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, labelID, cardID).
@@ -173,7 +192,14 @@ func TestShouldNotFindCardLabel(t *testing.T) {
 	cardID := uint(2)
 	userID := uint(3)
 
-	query := "SELECT `card_labels`.* FROM `card_labels` Join labels ON card_labels.label_id = labels.id Join boards ON labels.board_id = boards.id WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?) ORDER BY `card_labels`.`card_id` ASC LIMIT 1"
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'card_labels'.*
+		FROM 'card_labels'
+		Join labels ON card_labels.label_id = labels.id
+		Join boards ON labels.board_id = boards.id
+		WHERE (boards.user_id = ?) AND (card_labels.label_id = ?) AND (card_labels.card_id = ?)
+		ORDER BY 'card_labels'.'card_id' ASC
+		LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
 		WithArgs(userID, labelID, cardID).
@@ -203,7 +229,9 @@ func TestShouldSuccessfullyDeleteCardLabel(t *testing.T) {
 		LabelID: uint(2),
 	}
 
-	query := "DELETE FROM `card_labels` WHERE `card_labels`.`card_id` = ? AND `card_labels`.`label_id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		DELETE FROM 'card_labels'
+		WHERE 'card_labels'.'card_id' = ? AND 'card_labels'.'label_id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -232,7 +260,9 @@ func TestShouldNotDeleteCardLabel(t *testing.T) {
 		LabelID: uint(2),
 	}
 
-	query := "DELETE FROM `card_labels` WHERE `card_labels`.`card_id` = ? AND `card_labels`.`label_id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		DELETE FROM 'card_labels'
+		WHERE 'card_labels'.'card_id' = ? AND 'card_labels'.'label_id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).

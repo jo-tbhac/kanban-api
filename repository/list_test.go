@@ -24,11 +24,14 @@ func TestShouldSuccessfullyValidateUIDOnListRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
-		boardID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?) AND ('boards'.'id' = %d))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, boardID))).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id"}).AddRow(boardID, userID))
 
@@ -50,11 +53,14 @@ func TestShouldFailureValidateUIDOnListRepository(t *testing.T) {
 	userID := uint(1)
 	boardID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT user_id FROM `boards`  WHERE `boards`.`deleted_at` IS NULL AND ((user_id = ?) AND (`boards`.`id` = %d)) ORDER BY `boards`.`id` ASC LIMIT 1",
-		boardID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT user_id
+		FROM 'boards'
+		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?) AND ('boards'.'id' = %d))
+		ORDER BY 'boards'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, boardID))).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -81,11 +87,15 @@ func TestShouldSuccessfullyFindList(t *testing.T) {
 	listID := uint(2)
 	boardID := uint(3)
 
-	query := fmt.Sprintf(
-		"SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id WHERE `lists`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`lists`.`id` = %d)) ORDER BY `lists`.`id` ASC LIMIT 1",
-		listID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'lists'.*
+		FROM 'lists'
+		Join boards on boards.id = lists.board_id
+		WHERE 'lists'.'deleted_at' IS NULL AND ((boards.user_id = ?) AND ('lists'.'id' = %d))
+		ORDER BY 'lists'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, listID))).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "board_id"}).AddRow(listID, boardID))
 
@@ -112,11 +122,15 @@ func TestShouldNotFindList(t *testing.T) {
 	userID := uint(1)
 	listID := uint(2)
 
-	query := fmt.Sprintf(
-		"SELECT `lists`.* FROM `lists` Join boards on boards.id = lists.board_id WHERE `lists`.`deleted_at` IS NULL AND ((boards.user_id = ?) AND (`lists`.`id` = %d)) ORDER BY `lists`.`id` ASC LIMIT 1",
-		listID)
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT 'lists'.*
+		FROM 'lists'
+		Join boards on boards.id = lists.board_id
+		WHERE 'lists'.'deleted_at' IS NULL AND ((boards.user_id = ?) AND ('lists'.'id' = %d))
+		ORDER BY 'lists'.'id' ASC
+		LIMIT 1`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
+	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(query, listID))).
 		WithArgs(userID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -145,8 +159,16 @@ func TestShouldSuccessfullyCreateList(t *testing.T) {
 	boardID := uint(1)
 	index := 1
 
-	findQuery := "SELECT `index` FROM `lists`  WHERE `lists`.`deleted_at` IS NULL AND ((board_id = ?)) ORDER BY `index` desc LIMIT 1"
-	insertQuery := "INSERT INTO `lists` (`created_at`,`updated_at`,`deleted_at`,`name`,`board_id`,`index`) VALUES (?,?,?,?,?,?)"
+	findQuery := utils.ReplaceQuotationForQuery(`
+		SELECT 'index'
+		FROM 'lists'
+		WHERE 'lists'.'deleted_at' IS NULL AND ((board_id = ?))
+		ORDER BY 'index' desc
+		LIMIT 1`)
+
+	insertQuery := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'lists' ('created_at','updated_at','deleted_at','name','board_id','index')
+		VALUES (?,?,?,?,?,?)`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(boardID).
@@ -238,7 +260,10 @@ func TestShouldSuccessfullyUpdateList(t *testing.T) {
 	updatedAt := utils.AnyTime{}
 	name := strings.Repeat("a", 50)
 
-	query := "UPDATE `lists` SET `name` = ?, `updated_at` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'lists'
+		SET 'name' = ?, 'updated_at' = ?
+		WHERE 'lists'.'deleted_at' IS NULL AND 'lists'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -322,7 +347,9 @@ func TestShouldSuccessfullyUpdateListIndex(t *testing.T) {
 		{ID: 3, Index: 2},
 	}
 
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `index` = ELT(FIELD(id,1,2,3),1,3,2) WHERE id IN (1,2,3)")).
+	query := "UPDATE `lists` SET `index` = ELT(FIELD(id,1,2,3),1,3,2) WHERE id IN (1,2,3)"
+
+	mock.ExpectExec(regexp.QuoteMeta(query)).
 		WillReturnResult(sqlmock.NewResult(1, 3))
 
 	if err := r.UpdateIndex(params); err != nil {
@@ -348,7 +375,10 @@ func TestShouldSuccessfullyDeleteList(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
-	query := "UPDATE `lists` SET `deleted_at` = ?, `index` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'lists'
+		SET 'deleted_at' = ?, 'index' = ?
+		WHERE 'lists'.'deleted_at' IS NULL AND 'lists'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
@@ -382,7 +412,10 @@ func TestShouldNotDeleteList(t *testing.T) {
 	deletedAt := utils.AnyTime{}
 	index := 0
 
-	query := "UPDATE `lists` SET `deleted_at` = ?, `index` = ? WHERE `lists`.`deleted_at` IS NULL AND `lists`.`id` = ?"
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'lists'
+		SET 'deleted_at' = ?, 'index' = ?
+		WHERE 'lists'.'deleted_at' IS NULL AND 'lists'.'id' = ?`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
