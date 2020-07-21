@@ -51,6 +51,19 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		Color: "#ffffff",
 	}
 
+	mockCheckList := entity.CheckList{
+		ID:     uint(5),
+		Title:  "mockCheckList",
+		CardID: mockCard.ID,
+	}
+
+	mockCheckListItem := entity.CheckListItem{
+		ID:          uint(6),
+		Name:        "mockCheckListItem",
+		Check:       false,
+		CheckListID: mockCheckList.ID,
+	}
+
 	boardQuery := utils.ReplaceQuotationForQuery(`
 		SELECT id, updated_at, name, user_id
 		FROM 'boards'
@@ -100,6 +113,29 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 			sqlmock.NewRows([]string{"id", "name", "color", "card_id"}).
 				AddRow(mockLabel.ID, mockLabel.Name, mockLabel.Color, mockCard.ID))
 
+	checkListQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_lists.id, check_lists.title, check_lists.card_id FROM 'check_lists'
+		WHERE ('card_id' IN (?))
+		ORDER BY 'check_lists'.'id' ASC`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListQuery)).
+		WithArgs(mockCheckList.CardID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "title", "card_id"}).
+				AddRow(mockCheckList.ID, mockCheckList.Title, mockCheckList.CardID))
+
+	checkListItemQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_list_items.id, check_list_items.name, check_list_items.check_list_id, check_list_items.check
+		FROM 'check_list_items'
+		WHERE ('check_list_id' IN (?))
+		ORDER BY 'check_list_items'.'id' ASC`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListItemQuery)).
+		WithArgs(mockCheckListItem.CheckListID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "check", "check_list_id"}).
+				AddRow(mockCheckListItem.ID, mockCheckListItem.Name, mockCheckListItem.Check, mockCheckListItem.CheckListID))
+
 	b, err := r.Find(mockBoard.ID, userID)
 
 	if err != nil {
@@ -128,6 +164,15 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].ID, mockLabel.ID)
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].Name, mockLabel.Name)
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].Color, mockLabel.Color)
+
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].ID, mockCheckList.ID)
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].Title, mockCheckList.Title)
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].CardID, mockCheckList.CardID)
+
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].Items[0].ID, mockCheckListItem.ID)
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].Items[0].Name, mockCheckListItem.Name)
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].Items[0].Check, mockCheckListItem.Check)
+	assert.Equal(t, b.Lists[0].Cards[0].CheckLists[0].Items[0].CheckListID, mockCheckListItem.CheckListID)
 }
 
 func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
