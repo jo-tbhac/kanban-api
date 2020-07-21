@@ -20,6 +20,10 @@ func NewCheckListRepository(db *gorm.DB) *CheckListRepository {
 	}
 }
 
+func selectCheckListColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("check_lists.id, check_lists.title, check_lists.card_id")
+}
+
 // ValidateUID validates whether a cardID received as args was created by the login user.
 func (r *CheckListRepository) ValidateUID(cid, uid uint) []validator.ValidationError {
 	var b entity.Board
