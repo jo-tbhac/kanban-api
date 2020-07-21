@@ -85,6 +85,7 @@ func startServer() {
 	authorized.POST("/card/:cardID/check_list", checkListHandler.CreateCheckList)
 	authorized.PATCH("/check_list/:checkListID", checkListHandler.UpdateCheckList)
 	authorized.DELETE("/check_list/:checkListID", checkListHandler.DeleteCheckList)
+	authorized.GET("/board/:boardID/check_lists", checkListHandler.IndexCheckList)
 
 	authorized.POST("/check_list/:checkListID/item", checkListItemHandler.CreateCheckListItem)
 	authorized.PATCH("/check_list_item/:checkListItemID/:attribute", checkListItemHandler.UpdateCheckListItem)

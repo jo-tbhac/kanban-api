@@ -37,12 +37,6 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 		Preload("Lists.Cards.Labels", func(db *gorm.DB) *gorm.DB {
 			return db.Scopes(selectWithLabelAssociationKey)
 		}).
-		Preload("Lists.Cards.CheckLists", func(db *gorm.DB) *gorm.DB {
-			return db.Scopes(selectCheckListColumn)
-		}).
-		Preload("Lists.Cards.CheckLists.Items", func(db *gorm.DB) *gorm.DB {
-			return db.Scopes(selectCheckListItemColumn)
-		}).
 		Where("user_id = ?", uid).
 		First(&b, id)
 

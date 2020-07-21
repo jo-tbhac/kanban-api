@@ -89,3 +89,21 @@ func (r *CheckListRepository) Delete(c *entity.CheckList) []validator.Validation
 
 	return nil
 }
+
+// GetAll returns slice of CheckList's record.
+func (r *CheckListRepository) GetAll(bid, uid uint) *[]entity.CheckList {
+	var cs []entity.CheckList
+
+	r.db.Scopes(selectCheckListColumn).
+		Preload("Items", func(db *gorm.DB) *gorm.DB {
+			return db.Scopes(selectCheckListItemColumn)
+		}).
+		Joins("Join cards ON check_lists.card_id = cards.id").
+		Joins("Join lists ON cards.list_id = lists.id").
+		Joins("Join boards ON lists.board_id = boards.id").
+		Where("boards.id = ?", bid).
+		Where("boards.user_id = ?", uid).
+		Find(&cs)
+
+	return &cs
+}

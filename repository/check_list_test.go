@@ -376,3 +376,64 @@ func TestShouldFailureDeleteCheckList(t *testing.T) {
 
 	assert.Equal(t, err[0].Text, "invalid request")
 }
+
+func TestShouldSuccessfullyGetAllCheckList(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewCheckListRepository(db)
+
+	boardID := uint(1)
+	userID := uint(2)
+
+	mockCheckList := entity.CheckList{
+		ID:     uint(3),
+		Title:  "mockCheckList",
+		CardID: uint(4),
+	}
+
+	mockCheckListItem := entity.CheckListItem{
+		ID:          uint(5),
+		Name:        "mockCheckListItem",
+		Check:       false,
+		CheckListID: mockCheckList.ID,
+	}
+
+	checkListQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_lists.id, check_lists.title, check_lists.card_id
+		FROM 'check_lists'
+		Join cards ON check_lists.card_id = cards.id
+		Join lists ON cards.list_id = lists.id Join boards ON lists.board_id = boards.id
+		WHERE (boards.id = ?) AND (boards.user_id = ?)`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListQuery)).
+		WithArgs(boardID, userID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "title", "card_id"}).
+				AddRow(mockCheckList.ID, mockCheckList.Title, mockCheckList.CardID))
+
+	checkListItemQuery := utils.ReplaceQuotationForQuery(`
+		SELECT check_list_items.id, check_list_items.name, check_list_items.check_list_id, check_list_items.check
+		FROM 'check_list_items'
+		WHERE ('check_list_id' IN (?))`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(checkListItemQuery)).
+		WithArgs(mockCheckListItem.CheckListID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name", "check", "check_list_id"}).
+				AddRow(mockCheckListItem.ID, mockCheckListItem.Name, mockCheckListItem.Check, mockCheckListItem.CheckListID))
+
+	cs := r.GetAll(boardID, userID)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, (*cs)[0].ID, mockCheckList.ID)
+	assert.Equal(t, (*cs)[0].Title, mockCheckList.Title)
+	assert.Equal(t, (*cs)[0].CardID, mockCheckList.CardID)
+	assert.Equal(t, (*cs)[0].Items[0].ID, mockCheckListItem.ID)
+	assert.Equal(t, (*cs)[0].Items[0].Name, mockCheckListItem.Name)
+	assert.Equal(t, (*cs)[0].Items[0].Check, mockCheckListItem.Check)
+	assert.Equal(t, (*cs)[0].Items[0].CheckListID, mockCheckListItem.CheckListID)
+}
