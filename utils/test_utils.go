@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,4 +61,10 @@ func SetUpAuthentication(r *gin.Engine, req *http.Request, mock sqlmock.Sqlmock,
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
 		WithArgs(token).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+}
+
+// ReplaceQuotationForQuery replace the single quotation with the back quotation.
+func ReplaceQuotationForQuery(query string) string {
+	q := strings.ReplaceAll(query, "'", "`")
+	return q
 }
