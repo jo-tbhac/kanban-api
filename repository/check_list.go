@@ -76,7 +76,7 @@ func (r *CheckListRepository) Update(c *entity.CheckList, title string) []valida
 	return nil
 }
 
-// Delete delete a record from a checl_lists table.
+// Delete delete a record from a check_lists table.
 func (r *CheckListRepository) Delete(c *entity.CheckList) []validator.ValidationError {
 	if rslt := r.db.Delete(c); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete check_list: %v", rslt.Error)
