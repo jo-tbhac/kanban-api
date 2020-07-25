@@ -28,5 +28,5 @@ func Migrate() {
 	db.Model(&entity.CardLabel{}).AddForeignKey("label_id", "labels(id)", "RESTRICT", "RESTRICT")
 	db.Model(&entity.CardLabel{}).AddForeignKey("label_id", "labels(id)", "RESTRICT", "RESTRICT")
 	db.Model(&entity.CheckList{}).AddForeignKey("card_id", "cards(id)", "RESTRICT", "RESTRICT")
-	db.Model(&entity.CheckListItem{}).AddForeignKey("check_list_id", "check_lists(id)", "RESTRICT", "RESTRICT")
+	db.Model(&entity.CheckListItem{}).AddForeignKey("check_list_id", "check_lists(id)", "CASCADE", "RESTRICT")
 }
