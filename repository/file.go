@@ -90,3 +90,12 @@ func (r *FileRepository) Upload(fh *multipart.FileHeader, cid uint) *entity.File
 		CardID:      cid,
 	}
 }
+
+// Create insert a new record to a files table.
+func (r *FileRepository) Create(f *entity.File) []validator.ValidationError {
+	if err := r.db.Create(f).Error; err != nil {
+		return validator.FormattedMySQLError(err)
+	}
+
+	return nil
+}

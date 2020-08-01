@@ -49,6 +49,7 @@ func main() {
 
 func startServer() {
 	r := gin.Default()
+	r.MaxMultipartMemory = 8 << 20
 
 	r.Use(handler.MapIDParamsToContext())
 	r.Use(handler.CORSMiddleware())
