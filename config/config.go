@@ -9,6 +9,9 @@ import (
 
 // ConfigList contains application information.
 type ConfigList struct {
+	AWS struct {
+		Bucket string
+	}
 	Database struct {
 		Name   string
 		Driver string
