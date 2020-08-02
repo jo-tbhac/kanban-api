@@ -9,6 +9,9 @@ import (
 
 // ConfigList contains application information.
 type ConfigList struct {
+	AWS struct {
+		Bucket string
+	}
 	Database struct {
 		Name   string
 		Driver string
@@ -22,11 +25,16 @@ type ConfigList struct {
 var Config ConfigList
 
 func init() {
+	if env := os.Getenv("environment"); env == "test" {
+		return
+	}
+
 	viper.SetConfigName("config")
 
 	viper.SetConfigType("yml")
 
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("../")
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("failed read config file: %v", err)
