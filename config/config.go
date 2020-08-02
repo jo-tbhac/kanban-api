@@ -25,6 +25,10 @@ type ConfigList struct {
 var Config ConfigList
 
 func init() {
+	if env := os.Getenv("environment"); env == "test" {
+		return
+	}
+
 	viper.SetConfigName("config")
 
 	viper.SetConfigType("yml")
