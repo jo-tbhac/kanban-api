@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -55,4 +56,28 @@ func (h FileHandler) UploadFile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"file": f})
+}
+
+// DeleteFile call a function that delete an object from s3 bucket and delete a record from files table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
+func (h FileHandler) DeleteFile(c *gin.Context) {
+	fid := getIDParam(c, "fileID")
+
+	f, err := h.repository.Find(fid, currentUserID(c))
+
+	if err != nil {
+		log.Printf("file was not fonund. %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	if err := h.repository.Delete(f); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	h.repository.DeleteObject(fmt.Sprintf("%d/%s", fid, f.Key))
+
+	c.Status(http.StatusOK)
 }

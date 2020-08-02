@@ -95,6 +95,7 @@ func startServer() {
 	authorized.DELETE("/check_list_item/:checkListItemID", checkListItemHandler.DeleteCheckListItem)
 
 	authorized.POST("/card/:cardID/file", fileHandler.UploadFile)
+	authorized.DELETE("/file/:fileID", fileHandler.DeleteFile)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

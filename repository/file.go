@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/jinzhu/gorm"
 	"local.packages/config"
@@ -42,6 +43,22 @@ func (r *FileRepository) ValidateUID(cid, uid uint) []validator.ValidationError 
 	}
 
 	return nil
+}
+
+// Find returns a record of File that found by id.
+func (r *FileRepository) Find(id, uid uint) (*entity.File, []validator.ValidationError) {
+	var f entity.File
+
+	if r.db.Joins("Join cards ON files.card_id = cards.id").
+		Joins("Join lists ON cards.list_id = lists.id").
+		Joins("Join boards ON lists.board_id = boards.id").
+		Where("boards.user_id = ?", uid).
+		First(&f, id).
+		RecordNotFound() {
+		return &f, validator.NewValidationErrors("invalid parameters")
+	}
+
+	return &f, nil
 }
 
 // Upload upload file to S3
@@ -84,7 +101,8 @@ func (r *FileRepository) Upload(fh *multipart.FileHeader, cid uint) *entity.File
 	}
 
 	return &entity.File{
-		Name:        fh.Filename,
+		DisplayName: fh.Filename,
+		Key:         key,
 		URL:         uo.Location,
 		ContentType: ct,
 		CardID:      cid,
@@ -95,6 +113,33 @@ func (r *FileRepository) Upload(fh *multipart.FileHeader, cid uint) *entity.File
 func (r *FileRepository) Create(f *entity.File) []validator.ValidationError {
 	if err := r.db.Create(f).Error; err != nil {
 		return validator.FormattedMySQLError(err)
+	}
+
+	return nil
+}
+
+// Delete delete a record from a files table.
+func (r *FileRepository) Delete(f *entity.File) []validator.ValidationError {
+	if rslt := r.db.Delete(f); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete file: %v", rslt.Error)
+		return validator.NewValidationErrors("invalid request")
+	}
+
+	return nil
+}
+
+// DeleteObject deletes an object from S3 bucket.
+func (r *FileRepository) DeleteObject(key string) error {
+	svc := s3.New(config.AWSSession())
+
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(config.Config.AWS.Bucket),
+		Key:    aws.String(key),
+	})
+
+	if err != nil {
+		log.Printf("failed delete file object: %v", err)
+		return err
 	}
 
 	return nil
