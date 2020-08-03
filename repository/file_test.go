@@ -243,3 +243,47 @@ func TestShouldNotDeleteFile(t *testing.T) {
 
 	assert.Equal(t, err[0].Text, "invalid request")
 }
+
+func TestShouldSuccessfullyGetAllFiles(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewFileRepository(db)
+
+	userID := uint(1)
+	boardID := uint(2)
+
+	mockFile := entity.File{
+		ID:          uint(3),
+		DisplayName: "file1",
+		URL:         "http://test",
+		ContentType: "image/png",
+		CardID:      uint(4),
+	}
+
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT files.id, files.display_name, files.url, files.content_type, files.card_id
+		FROM 'files'
+		Join cards ON files.card_id = cards.id
+		Join lists ON cards.list_id = lists.id
+		Join boards ON lists.board_id = boards.id
+		WHERE (boards.id = ?) AND (boards.user_id = ?)`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WithArgs(boardID, userID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "display_name", "url", "content_type", "card_id"}).
+				AddRow(mockFile.ID, mockFile.DisplayName, mockFile.URL, mockFile.ContentType, mockFile.CardID))
+
+	fs := r.GetAll(boardID, userID)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, (*fs)[0].ID, mockFile.ID)
+	assert.Equal(t, (*fs)[0].DisplayName, mockFile.DisplayName)
+	assert.Equal(t, (*fs)[0].URL, mockFile.URL)
+	assert.Equal(t, (*fs)[0].ContentType, mockFile.ContentType)
+	assert.Equal(t, (*fs)[0].CardID, mockFile.CardID)
+}
