@@ -81,3 +81,10 @@ func (h FileHandler) DeleteFile(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+// IndexFiles returns status 200 and slice of File instance as http response.
+func (h FileHandler) IndexFiles(c *gin.Context) {
+	bid := getIDParam(c, "boardID")
+	fs := h.repository.GetAll(bid, currentUserID(c))
+	c.JSON(http.StatusOK, gin.H{"files": fs})
+}

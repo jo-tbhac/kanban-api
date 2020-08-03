@@ -96,6 +96,7 @@ func startServer() {
 
 	authorized.POST("/card/:cardID/file", fileHandler.UploadFile)
 	authorized.DELETE("/file/:fileID", fileHandler.DeleteFile)
+	authorized.GET("/board/:boardID/files", fileHandler.IndexFiles)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

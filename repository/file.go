@@ -28,6 +28,10 @@ func NewFileRepository(db *gorm.DB) *FileRepository {
 	}
 }
 
+func selectFileColumn(db *gorm.DB) *gorm.DB {
+	return db.Select("files.id, files.display_name, files.url, files.content_type, files.card_id")
+}
+
 // ValidateUID validates whether a cardID received as args was created by the login user.
 func (r *FileRepository) ValidateUID(cid, uid uint) []validator.ValidationError {
 	var b entity.Board
@@ -143,4 +147,19 @@ func (r *FileRepository) DeleteObject(key string) error {
 	}
 
 	return nil
+}
+
+// GetAll returns slice of File's record.
+func (r *FileRepository) GetAll(bid, uid uint) *[]entity.File {
+	var fs []entity.File
+
+	r.db.Scopes(selectFileColumn).
+		Joins("Join cards ON files.card_id = cards.id").
+		Joins("Join lists ON cards.list_id = lists.id").
+		Joins("Join boards ON lists.board_id = boards.id").
+		Where("boards.id = ?", bid).
+		Where("boards.user_id = ?", uid).
+		Find(&fs)
+
+	return &fs
 }
