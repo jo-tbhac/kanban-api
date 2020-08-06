@@ -79,6 +79,8 @@ func FormattedMySQLError(err error) []ValidationError {
 	case "1062":
 		v := strings.ReplaceAll(regexpMySQLErrorValue.FindString(err.Error()), "'", "")
 		return NewValidationErrors(fmt.Sprintf("%s has already been taken", v))
+	case "1452":
+		return NewValidationErrors("related data does not exist")
 	default:
 		return nil
 	}

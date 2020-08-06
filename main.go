@@ -23,6 +23,7 @@ var (
 	checkListHandler     *handler.CheckListHandler
 	checkListItemHandler *handler.CheckListItemHandler
 	fileHandler          *handler.FileHandler
+	coverHandler         *handler.CoverHandler
 )
 
 func main() {
@@ -42,6 +43,7 @@ func main() {
 	checkListHandler = handler.NewCheckListHandler(repository.NewCheckListRepository(db))
 	checkListItemHandler = handler.NewCheckListItemHandler(repository.NewCheckListItemRepository(db))
 	fileHandler = handler.NewFileHandler(repository.NewFileRepository(db))
+	coverHandler = handler.NewCoverHandler(repository.NewCoverRepository(db))
 
 	migration.Migrate()
 	startServer()
@@ -97,6 +99,8 @@ func startServer() {
 	authorized.POST("/card/:cardID/file", fileHandler.UploadFile)
 	authorized.DELETE("/file/:fileID", fileHandler.DeleteFile)
 	authorized.GET("/board/:boardID/files", fileHandler.IndexFiles)
+
+	authorized.POST("/card/:cardID/cover/:fileID", coverHandler.CreateCover)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

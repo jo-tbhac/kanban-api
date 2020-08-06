@@ -18,6 +18,7 @@ type Card struct {
 	Labels      []Label     `json:"labels" gorm:"many2many:card_labels;"`
 	CheckLists  []CheckList `json:"check_lists"`
 	Index       int         `json:"index"`
+	Cover       Cover       `json:"cover"`
 }
 
 // BeforeSave called before create/update a record of cards table.
