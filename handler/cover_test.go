@@ -114,9 +114,8 @@ func TestUpdateCoverHandlerShouldReturnsStatusOK(t *testing.T) {
 	r := utils.SetUpRouter()
 
 	b, err := json.Marshal(coverParams{
-		CardID:    uint(1),
-		NewFileID: uint(2),
-		OldFileID: uint(3),
+		CardID: uint(1),
+		FileID: uint(2),
 	})
 
 	if err != nil {
@@ -155,9 +154,8 @@ func TestUpdateCoverHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	r := utils.SetUpRouter()
 
 	b, err := json.Marshal(coverParams{
-		CardID:    uint(1),
-		NewFileID: uint(2),
-		OldFileID: uint(3),
+		CardID: uint(1),
+		FileID: uint(2),
 	})
 
 	if err != nil {
@@ -191,4 +189,79 @@ func TestUpdateCoverHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, fmt.Sprintf("%d has already been taken", uint(1)))
+}
+
+func TestDeleteCoverHandlerShouldReturnsStatusOK(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCoverHandler(repository.NewCoverRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	cardID := uint(1)
+	url := fmt.Sprintf("/card/%d/cover", cardID)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, url, nil)
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `covers`.* FROM `covers`"))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `covers`")).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	r.DELETE("/card/:cardID/cover", ch.DeleteCover)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+}
+
+func TestDeleteCoverHandlerShouldReturnsStatusBadRequest(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCoverHandler(repository.NewCoverRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	cardID := uint(1)
+	url := fmt.Sprintf("/card/%d/cover", cardID)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, url, nil)
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `covers`.* FROM `covers`"))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `covers`")).
+		WillReturnResult(sqlmock.NewResult(1, 0))
+
+	mock.ExpectCommit()
+
+	r.DELETE("/card/:cardID/cover", ch.DeleteCover)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]validator.ValidationError{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 400)
+	assert.Equal(t, res["errors"][0].Text, "invalid request")
 }

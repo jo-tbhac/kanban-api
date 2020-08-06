@@ -10,9 +10,8 @@ import (
 )
 
 type coverParams struct {
-	NewFileID uint `json:"new_file_id"`
-	OldFileID uint `json:"old_file_id"`
-	CardID    uint `json:"card_id"`
+	FileID uint `json:"new_file_id"`
+	CardID uint `json:"card_id"`
 }
 
 // CoverHandler ...
@@ -61,7 +60,7 @@ func (h CoverHandler) UpdateCover(c *gin.Context) {
 		return
 	}
 
-	co, err := h.repository.Find(p.CardID, p.OldFileID, currentUserID(c))
+	co, err := h.repository.Find(p.CardID, currentUserID(c))
 
 	if err != nil {
 		log.Println("uid does not match board.user_id associated with the cover")
@@ -69,7 +68,29 @@ func (h CoverHandler) UpdateCover(c *gin.Context) {
 		return
 	}
 
-	if err := h.repository.Update(co, p.NewFileID); err != nil {
+	if err := h.repository.Update(co, p.FileID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// DeleteCover call a function that delete a record from covers table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
+func (h CoverHandler) DeleteCover(c *gin.Context) {
+	cid := getIDParam(c, "cardID")
+
+	co, err := h.repository.Find(cid, currentUserID(c))
+
+	if err != nil {
+		log.Println("uid does not match board.user_id associated with the cover")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	if err := h.repository.Delete(co); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
