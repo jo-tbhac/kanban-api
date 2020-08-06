@@ -37,6 +37,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 		Preload("Lists.Cards.Labels", func(db *gorm.DB) *gorm.DB {
 			return db.Scopes(selectWithLabelAssociationKey)
 		}).
+		Preload("Lists.Cards.Cover").
 		Where("user_id = ?", uid).
 		First(&b, id)
 
