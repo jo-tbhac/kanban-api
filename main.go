@@ -102,6 +102,7 @@ func startServer() {
 
 	authorized.POST("/card/:cardID/cover/:fileID", coverHandler.CreateCover)
 	authorized.PATCH("/cover", coverHandler.UpdateCover)
+	authorized.DELETE("/card/:cardID/cover", coverHandler.DeleteCover)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

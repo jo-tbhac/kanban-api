@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/jinzhu/gorm"
 	"local.packages/entity"
 	"local.packages/validator"
@@ -36,7 +38,7 @@ func (r *CoverRepository) ValidateUID(cid, uid uint) []validator.ValidationError
 }
 
 // Find returns a record of CheckList that found by id.
-func (r *CoverRepository) Find(cid, fid, uid uint) (*entity.Cover, []validator.ValidationError) {
+func (r *CoverRepository) Find(cid, uid uint) (*entity.Cover, []validator.ValidationError) {
 	var c entity.Cover
 
 	if r.db.Joins("Join cards ON covers.card_id = cards.id").
@@ -44,7 +46,6 @@ func (r *CoverRepository) Find(cid, fid, uid uint) (*entity.Cover, []validator.V
 		Joins("Join boards ON lists.board_id = boards.id").
 		Where("boards.user_id = ?", uid).
 		Where("covers.card_id = ?", cid).
-		Where("covers.file_id = ?", fid).
 		First(&c).
 		RecordNotFound() {
 		return &c, validator.NewValidationErrors("invalid parameters")
@@ -71,6 +72,16 @@ func (r *CoverRepository) Create(cid, fid uint) (*entity.Cover, []validator.Vali
 func (r *CoverRepository) Update(c *entity.Cover, newID uint) []validator.ValidationError {
 	if err := r.db.Model(c).Update("file_id", newID).Error; err != nil {
 		return validator.FormattedMySQLError(err)
+	}
+
+	return nil
+}
+
+// Delete delete a record from a covers table
+func (r *CoverRepository) Delete(c *entity.Cover) []validator.ValidationError {
+	if rslt := r.db.Delete(c); rslt.RowsAffected == 0 {
+		log.Printf("fail to delete cover: %v", rslt.Error)
+		return validator.NewValidationErrors("invalid request")
 	}
 
 	return nil
