@@ -101,6 +101,7 @@ func startServer() {
 	authorized.GET("/board/:boardID/files", fileHandler.IndexFiles)
 
 	authorized.POST("/card/:cardID/cover/:fileID", coverHandler.CreateCover)
+	authorized.PATCH("/cover", coverHandler.UpdateCover)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

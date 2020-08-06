@@ -35,6 +35,24 @@ func (r *CoverRepository) ValidateUID(cid, uid uint) []validator.ValidationError
 	return nil
 }
 
+// Find returns a record of CheckList that found by id.
+func (r *CoverRepository) Find(cid, fid, uid uint) (*entity.Cover, []validator.ValidationError) {
+	var c entity.Cover
+
+	if r.db.Joins("Join cards ON covers.card_id = cards.id").
+		Joins("Join lists ON cards.list_id = lists.id").
+		Joins("Join boards ON lists.board_id = boards.id").
+		Where("boards.user_id = ?", uid).
+		Where("covers.card_id = ?", cid).
+		Where("covers.file_id = ?", fid).
+		First(&c).
+		RecordNotFound() {
+		return &c, validator.NewValidationErrors("invalid parameters")
+	}
+
+	return &c, nil
+}
+
 // Create insert a new record to a card_labels table.
 func (r *CoverRepository) Create(cid, fid uint) (*entity.Cover, []validator.ValidationError) {
 	c := &entity.Cover{
@@ -47,4 +65,13 @@ func (r *CoverRepository) Create(cid, fid uint) (*entity.Cover, []validator.Vali
 	}
 
 	return c, nil
+}
+
+// Update update a record's file_id in a covers table
+func (r *CoverRepository) Update(c *entity.Cover, newID uint) []validator.ValidationError {
+	if err := r.db.Model(c).Update("file_id", newID).Error; err != nil {
+		return validator.FormattedMySQLError(err)
+	}
+
+	return nil
 }
