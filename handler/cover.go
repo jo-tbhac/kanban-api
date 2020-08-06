@@ -6,7 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"local.packages/repository"
+	"local.packages/validator"
 )
+
+type coverParams struct {
+	NewFileID uint `json:"new_file_id"`
+	OldFileID uint `json:"old_file_id"`
+	CardID    uint `json:"card_id"`
+}
 
 // CoverHandler ...
 type CoverHandler struct {
@@ -40,4 +47,32 @@ func (h CoverHandler) CreateCover(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"cover": co})
+}
+
+// UpdateCover call a function that update a record in covers table.
+// if deletion was successful, returns status 200.
+// if deletion was failure, returns status 400 and errors with message.
+func (h CoverHandler) UpdateCover(c *gin.Context) {
+	var p coverParams
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		log.Printf("fail to bind JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		return
+	}
+
+	co, err := h.repository.Find(p.CardID, p.OldFileID, currentUserID(c))
+
+	if err != nil {
+		log.Println("uid does not match board.user_id associated with the cover")
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	if err := h.repository.Update(co, p.NewFileID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
