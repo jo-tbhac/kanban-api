@@ -51,6 +51,11 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		Color: "#ffffff",
 	}
 
+	mockCover := &entity.Cover{
+		CardID: mockCard.ID,
+		FileID: uint(5),
+	}
+
 	boardQuery := utils.ReplaceQuotationForQuery(`
 		SELECT id, updated_at, name, user_id
 		FROM 'boards'
@@ -99,6 +104,17 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "name", "color", "card_id"}).
 				AddRow(mockLabel.ID, mockLabel.Name, mockLabel.Color, mockCard.ID))
+	coverQuery := utils.ReplaceQuotationForQuery(`
+		SELECT *
+		FROM 'covers'
+		WHERE ('card_id' IN (?))
+		ORDER BY 'covers'.'card_id' ASC`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(coverQuery)).
+		WithArgs(mockCard.ID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"card_id", "file_id"}).
+				AddRow(mockCover.CardID, mockCover.FileID))
 
 	b, err := r.Find(mockBoard.ID, userID)
 
@@ -128,6 +144,9 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].ID, mockLabel.ID)
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].Name, mockLabel.Name)
 	assert.Equal(t, b.Lists[0].Cards[0].Labels[0].Color, mockLabel.Color)
+
+	assert.Equal(t, b.Lists[0].Cards[0].Cover.CardID, mockCover.CardID)
+	assert.Equal(t, b.Lists[0].Cards[0].Cover.FileID, mockCover.FileID)
 }
 
 func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
