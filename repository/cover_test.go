@@ -157,14 +157,14 @@ func TestShouldSuccessfullyFindCover(t *testing.T) {
 		Join cards ON covers.card_id = cards.id
 		Join lists ON cards.list_id = lists.id
 		Join boards ON lists.board_id = boards.id
-		WHERE (boards.user_id = ?) AND (covers.card_id = ?) AND (covers.file_id = ?)
+		WHERE (boards.user_id = ?) AND (covers.card_id = ?)
 		ORDER BY 'covers'.'card_id' ASC LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
-		WithArgs(userID, cardID, fileID).
+		WithArgs(userID, cardID).
 		WillReturnRows(sqlmock.NewRows([]string{"card_id", "file_id"}).AddRow(cardID, fileID))
 
-	c, err := r.Find(cardID, fileID, userID)
+	c, err := r.Find(cardID, userID)
 
 	if err != nil {
 		t.Errorf("was not expected an error. %v", err)
@@ -186,7 +186,6 @@ func TestShouldNotFindCover(t *testing.T) {
 
 	cardID := uint(1)
 	userID := uint(2)
-	fileID := uint(3)
 
 	query := utils.ReplaceQuotationForQuery(`
 		SELECT 'covers'.*
@@ -194,14 +193,14 @@ func TestShouldNotFindCover(t *testing.T) {
 		Join cards ON covers.card_id = cards.id
 		Join lists ON cards.list_id = lists.id
 		Join boards ON lists.board_id = boards.id
-		WHERE (boards.user_id = ?) AND (covers.card_id = ?) AND (covers.file_id = ?)
+		WHERE (boards.user_id = ?) AND (covers.card_id = ?)
 		ORDER BY 'covers'.'card_id' ASC LIMIT 1`)
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).
-		WithArgs(userID, cardID, fileID).
+		WithArgs(userID, cardID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	_, err := r.Find(cardID, fileID, userID)
+	_, err := r.Find(cardID, userID)
 
 	if err == nil {
 		t.Errorf("was expected an error, but did not recieved it.")
@@ -286,4 +285,70 @@ func TestShouldFailureUpdateCover(t *testing.T) {
 	}
 
 	assert.Equal(t, err[0].Text, fmt.Sprintf("%d has already been taken", c.CardID))
+}
+
+func TestShouldSuccessfullyDeleteCover(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	c := &entity.Cover{
+		CardID: uint(1),
+		FileID: uint(3),
+	}
+
+	r := NewCoverRepository(db)
+
+	query := utils.ReplaceQuotationForQuery(`
+		DELETE FROM 'covers'
+		WHERE 'covers'.'card_id' = ?`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(c.CardID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	if err := r.Delete(c); err != nil {
+		t.Errorf("was not expected an error. %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+}
+
+func TestShouldFailureDeleteCover(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	c := &entity.Cover{
+		CardID: uint(1),
+		FileID: uint(3),
+	}
+
+	r := NewCoverRepository(db)
+
+	query := utils.ReplaceQuotationForQuery(`
+		DELETE FROM 'covers'
+		WHERE 'covers'.'card_id' = ?`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(c.CardID).
+		WillReturnResult(sqlmock.NewResult(1, 0))
+
+	mock.ExpectCommit()
+
+	err := r.Delete(c)
+
+	if err == nil {
+		t.Errorf("was expected an error, but did not recieved it.")
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, err[0].Text, "invalid request")
 }
