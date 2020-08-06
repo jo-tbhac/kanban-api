@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -101,4 +102,93 @@ func TestShouldFailureCreateCoverHandlerWhenDuplicatePrimaryKey(t *testing.T) {
 
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, fmt.Sprintf("%d-%d has already been taken", cardID, fileID))
+}
+
+func TestUpdateCoverHandlerShouldReturnsStatusOK(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCoverHandler(repository.NewCoverRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	b, err := json.Marshal(coverParams{
+		CardID:    uint(1),
+		NewFileID: uint(2),
+		OldFileID: uint(3),
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/cover", bytes.NewReader(b))
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `covers`.* FROM `covers`"))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `covers` SET")).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	r.PATCH("/cover", ch.UpdateCover)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+}
+
+func TestUpdateCoverHandlerShouldReturnsStatusBadRequest(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	ch := NewCoverHandler(repository.NewCoverRepository(db))
+	uh := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	b, err := json.Marshal(coverParams{
+		CardID:    uint(1),
+		NewFileID: uint(2),
+		OldFileID: uint(3),
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/cover", bytes.NewReader(b))
+
+	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `covers`.* FROM `covers`"))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `covers` SET")).
+		WillReturnError(fmt.Errorf("Error 1062: Duplicate entry '%d' for key", uint(1)))
+
+	mock.ExpectRollback()
+
+	r.PATCH("/cover", ch.UpdateCover)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]validator.ValidationError{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 400)
+	assert.Equal(t, res["errors"][0].Text, fmt.Sprintf("%d has already been taken", uint(1)))
 }
