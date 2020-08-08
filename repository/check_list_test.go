@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCheckListRepository(t *testing.T) {
@@ -201,12 +202,12 @@ func TestShouldNotCreateCheckList(t *testing.T) {
 			testName:      "when without a title",
 			title:         "",
 			cardID:        uint(1),
-			expectedError: "Title must exist",
+			expectedError: validator.ErrorRequired("チェックリスト名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			title:         strings.Repeat("w", 51),
 			cardID:        uint(1),
-			expectedError: "Title is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("チェックリスト名", "50"),
 		},
 	}
 
@@ -280,11 +281,11 @@ func TestShouldNotUpdateCheckList(t *testing.T) {
 		{
 			testName:      "when without a title",
 			title:         "",
-			expectedError: "Title must exist",
+			expectedError: validator.ErrorRequired("チェックリスト名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			title:         strings.Repeat("w", 51),
-			expectedError: "Title is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("チェックリスト名", "50"),
 		},
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCoverRepository(t *testing.T) {
@@ -138,7 +139,7 @@ func TestShoulNotCreateCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d has already been taken", cardID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyFindCover(t *testing.T) {
@@ -284,7 +285,7 @@ func TestShouldFailureUpdateCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d has already been taken", c.CardID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyDeleteCover(t *testing.T) {

@@ -13,6 +13,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnLabelRepository(t *testing.T) {
@@ -228,37 +229,37 @@ func TestShouldNotCreateLabel(t *testing.T) {
 			labelName:     "",
 			color:         "#fff",
 			boardID:       uint(1),
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("ラベル名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			labelName:     strings.Repeat("a", 51),
 			color:         "#fff",
 			boardID:       uint(1),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("ラベル名", "50"),
 		}, {
 			testName:      "when without a color",
 			labelName:     "sample label",
 			color:         "",
 			boardID:       uint(1),
-			expectedError: "Color must exist",
+			expectedError: validator.ErrorRequired("ラベルカラー"),
 		}, {
 			testName:      "when color does not contains hashtag(#)",
 			labelName:     "sample label",
 			color:         "ffffff",
 			boardID:       uint(1),
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		}, {
 			testName:      "when color code more than 6 digit",
 			labelName:     "sample label",
 			color:         fmt.Sprintf("#%s", strings.Repeat("f", 7)),
 			boardID:       uint(1),
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		}, {
 			testName:      "when color contains invalid character",
 			labelName:     "sample label",
 			color:         "#fgfgfg",
 			boardID:       uint(1),
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		},
 	}
 
@@ -364,32 +365,32 @@ func TestShouldNotUpdateLabel(t *testing.T) {
 			testName:      "when without a name",
 			labelName:     "",
 			color:         "#fff",
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("ラベル名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			labelName:     strings.Repeat("a", 51),
 			color:         "#fff",
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("ラベル名", "50"),
 		}, {
 			testName:      "when without a color",
 			labelName:     "sample label",
 			color:         "",
-			expectedError: "Color must exist",
+			expectedError: validator.ErrorRequired("ラベルカラー"),
 		}, {
 			testName:      "when color does not contains hashtag(#)",
 			labelName:     "sample label",
 			color:         "ffffff",
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		}, {
 			testName:      "when color code more than 6 digit",
 			labelName:     "sample label",
 			color:         fmt.Sprintf("#%s", strings.Repeat("f", 7)),
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		}, {
 			testName:      "when color contains invalid character",
 			labelName:     "sample label",
 			color:         "#fgfgfg",
-			expectedError: "Color must be hexcolor",
+			expectedError: validator.ErrorHexcolor("ラベルカラー"),
 		},
 	}
 

@@ -11,6 +11,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCardLabelRepository(t *testing.T) {
@@ -142,7 +143,7 @@ func TestShouldNotCreateCardLabelWhenDuplicatePrimaryKey(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d-%d has already been taken", cardID, labelID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyFindCardLabel(t *testing.T) {
