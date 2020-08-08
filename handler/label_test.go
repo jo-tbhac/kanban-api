@@ -86,7 +86,7 @@ func TestShouldFailureCreateLabelHandler(t *testing.T) {
 		{
 			testName:       "when without a name",
 			expectedStatus: 400,
-			expectedError:  "Name must exist",
+			expectedError:  validator.ErrorRequired("ラベル名"),
 			labelRequestBody: labelRequestBody{
 				Name:  "",
 				Color: "#fff",
@@ -94,7 +94,7 @@ func TestShouldFailureCreateLabelHandler(t *testing.T) {
 		}, {
 			testName:       "when without a color",
 			expectedStatus: 400,
-			expectedError:  "Color must exist",
+			expectedError:  validator.ErrorRequired("ラベルカラー"),
 			labelRequestBody: labelRequestBody{
 				Name:  "sample label",
 				Color: "",
@@ -208,7 +208,7 @@ func TestShouldFailureUpdateLabelHandler(t *testing.T) {
 		{
 			testName:       "when without a name",
 			expectedStatus: 400,
-			expectedError:  "Name must exist",
+			expectedError:  validator.ErrorRequired("ラベル名"),
 			labelRequestBody: labelRequestBody{
 				Name:  "",
 				Color: "#fff",
@@ -216,7 +216,7 @@ func TestShouldFailureUpdateLabelHandler(t *testing.T) {
 		}, {
 			testName:       "when without a color",
 			expectedStatus: 400,
-			expectedError:  "Color must exist",
+			expectedError:  validator.ErrorRequired("ラベルカラー"),
 			labelRequestBody: labelRequestBody{
 				Name:  "sample label",
 				Color: "",

@@ -115,7 +115,7 @@ func TestShouldFailureCreateCheckListItemHandlerWhenRecievedInvalidParameter(t *
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Name must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("アイテム名"))
 }
 
 func TestUpdateCheckListItemHandlerShouldReturnsStatusOK(t *testing.T) {

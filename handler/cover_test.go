@@ -101,7 +101,7 @@ func TestShouldFailureCreateCoverHandlerWhenDuplicatePrimaryKey(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, fmt.Sprintf("%d-%d has already been taken", cardID, fileID))
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestUpdateCoverHandlerShouldReturnsStatusOK(t *testing.T) {
@@ -188,7 +188,7 @@ func TestUpdateCoverHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, fmt.Sprintf("%d has already been taken", uint(1)))
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestDeleteCoverHandlerShouldReturnsStatusOK(t *testing.T) {

@@ -109,7 +109,7 @@ func TestShouldFailureCreateBoardHandlerWhenWithoutBoardName(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Name must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("ボード名"))
 }
 
 func TestUpdateBoardHandlerShouldReturnsStatusOKWithBoardData(t *testing.T) {
@@ -181,7 +181,7 @@ func TestShouldFailureUpdateBoardHandler(t *testing.T) {
 		}, {
 			testName:       "when without name",
 			expectedStatus: 400,
-			expectedError:  "Name must exist",
+			expectedError:  validator.ErrorRequired("ボード名"),
 			queryParameter: "1",
 			boardRequestBody: boardRequestBody{
 				Name: "",

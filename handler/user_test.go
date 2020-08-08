@@ -93,7 +93,7 @@ func TestShouldFailureCreateUserHandler(t *testing.T) {
 		{
 			testName:       "when without a name",
 			expectedStatus: 400,
-			expectedError:  "Name must exist",
+			expectedError:  validator.ErrorRequired("ユーザー名"),
 			userRequestBody: userRequestBody{
 				Name:                 "",
 				Email:                "gopher@sample.com",
@@ -103,7 +103,7 @@ func TestShouldFailureCreateUserHandler(t *testing.T) {
 		}, {
 			testName:       "when without an email",
 			expectedStatus: 400,
-			expectedError:  "Email must exist",
+			expectedError:  validator.ErrorRequired("メールアドレス"),
 			userRequestBody: userRequestBody{
 				Name:                 "gopher",
 				Email:                "",
@@ -113,7 +113,7 @@ func TestShouldFailureCreateUserHandler(t *testing.T) {
 		}, {
 			testName:       "when without a password",
 			expectedStatus: 400,
-			expectedError:  "Password must exist",
+			expectedError:  validator.ErrorRequired("パスワード"),
 			userRequestBody: userRequestBody{
 				Name:                 "gopher",
 				Email:                "gopher@sample.com",
@@ -123,7 +123,7 @@ func TestShouldFailureCreateUserHandler(t *testing.T) {
 		}, {
 			testName:       "when does not match password and password confirmation",
 			expectedStatus: 400,
-			expectedError:  "Password must be equal to PasswordConfirmation",
+			expectedError:  validator.ErrorEqualField("パスワード", "パスワード（確認用）"),
 			userRequestBody: userRequestBody{
 				Name:                 "gopher",
 				Email:                "gopher@sample.com",
@@ -133,7 +133,7 @@ func TestShouldFailureCreateUserHandler(t *testing.T) {
 		}, {
 			testName:       "when password less than 8 characters",
 			expectedStatus: 400,
-			expectedError:  "Password is too short (minimum is 8 characters",
+			expectedError:  validator.ErrorTooShort("パスワード", "8"),
 			userRequestBody: userRequestBody{
 				Name:                 "gopher",
 				Email:                "gopher@sample.com",
