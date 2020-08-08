@@ -1,0 +1,30 @@
+Board:
+    Name: ボード名
+Card:
+    Title: カードタイトル
+    Description: 説明
+    Index: 並び順
+    Cover: カバー
+CheckList:
+    Title: チェックリスト名
+CheckListItem:
+    Name: アイテム名
+File:
+    DisplayName: ファイル名
+Label:
+    Name: ラベル名
+    Color: ラベルカラー
+List:
+    Name: リスト名
+    Index: 並び順
+User:
+    Name: ユーザー名
+    Email: メールアドレス
+UserParams:
+    Name: ユーザー名
+    Email: メールアドレス
+    Password: パスワード
+    PasswordConfirmation: パスワード（確認用）
+SessionParams:
+    Email: メールアドレス
+    Password: パスワード
