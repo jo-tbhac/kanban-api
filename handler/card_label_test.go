@@ -174,5 +174,5 @@ func TestDeleteCardLabelHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid request")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorInvalidRequest)
 }
