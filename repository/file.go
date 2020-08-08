@@ -43,7 +43,7 @@ func (r *FileRepository) ValidateUID(cid, uid uint) []validator.ValidationError 
 		Where("boards.user_id = ?", uid).
 		First(&b).
 		RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -59,7 +59,7 @@ func (r *FileRepository) Find(id, uid uint) (*entity.File, []validator.Validatio
 		Where("boards.user_id = ?", uid).
 		First(&f, id).
 		RecordNotFound() {
-		return &f, validator.NewValidationErrors("invalid parameters")
+		return &f, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &f, nil
@@ -126,7 +126,7 @@ func (r *FileRepository) Create(f *entity.File) []validator.ValidationError {
 func (r *FileRepository) Delete(f *entity.File) []validator.ValidationError {
 	if rslt := r.db.Delete(f); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete file: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

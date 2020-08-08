@@ -31,7 +31,7 @@ func (r *CoverRepository) ValidateUID(cid, uid uint) []validator.ValidationError
 		Where("boards.user_id = ?", uid).
 		First(&b).
 		RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -48,7 +48,7 @@ func (r *CoverRepository) Find(cid, uid uint) (*entity.Cover, []validator.Valida
 		Where("covers.card_id = ?", cid).
 		First(&c).
 		RecordNotFound() {
-		return &c, validator.NewValidationErrors("invalid parameters")
+		return &c, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &c, nil
@@ -81,7 +81,7 @@ func (r *CoverRepository) Update(c *entity.Cover, newID uint) []validator.Valida
 func (r *CoverRepository) Delete(c *entity.Cover) []validator.ValidationError {
 	if rslt := r.db.Delete(c); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete cover: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

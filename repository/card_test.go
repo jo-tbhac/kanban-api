@@ -76,7 +76,7 @@ func TestShouldFailureValidateUIDOnCardRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindCard(t *testing.T) {
@@ -153,7 +153,7 @@ func TestShouldNotFindCard(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateCard(t *testing.T) {
@@ -521,7 +521,7 @@ func TestShouldNotDeleteCard(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }
 
 func TestShouldSuccessfullySearchCard(t *testing.T) {

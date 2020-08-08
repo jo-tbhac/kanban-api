@@ -78,7 +78,7 @@ func TestShouldFailureValidateUIDOnCheckListItemRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindCheckListItem(t *testing.T) {
@@ -152,7 +152,7 @@ func TestShouldNotFindCheckListItem(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateCheckListItem(t *testing.T) {
@@ -426,5 +426,5 @@ func TestShouldNotDeleteCheckListItem(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

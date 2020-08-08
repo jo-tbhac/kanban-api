@@ -45,18 +45,18 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 	u := &entity.User{}
 
 	if r.db.Where("email = ?", email).First(u).RecordNotFound() {
-		return u, validator.NewValidationErrors("user does not exist")
+		return u, validator.NewValidationErrors(ErrorUserDoesNotExist)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordDigest), []byte(password)); err != nil {
-		return u, validator.NewValidationErrors("invalid password")
+		return u, validator.NewValidationErrors(ErrorInvalidPassword)
 	}
 
 	t, err := newSessionToken()
 
 	if err != nil {
 		log.Printf("fail to create token: %v", err)
-		return u, validator.NewValidationErrors("internal server error")
+		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
 	}
 
 	r.db.Model(u).Select("remember_token").Updates(map[string]interface{}{"remember_token": t})
@@ -81,7 +81,7 @@ func (r *UserRepository) EncryptPassword(password string) (string, []validator.V
 	h, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		return "", validator.NewValidationErrors("internal server error")
+		return "", validator.NewValidationErrors(ErrorAuthenticationFailed)
 	}
 
 	digest := string(h)

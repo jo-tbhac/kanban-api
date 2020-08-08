@@ -71,7 +71,7 @@ func TestShouldFailureValidateUIDOnCoverRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyCreateCover(t *testing.T) {
@@ -210,7 +210,7 @@ func TestShouldNotFindCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyUpdateCover(t *testing.T) {
@@ -350,5 +350,5 @@ func TestShouldFailureDeleteCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

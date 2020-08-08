@@ -74,7 +74,7 @@ func TestShouldFailureValidateUIDOnLabelRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindLabel(t *testing.T) {
@@ -144,7 +144,7 @@ func TestShouldNotFindLabel(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateLabel(t *testing.T) {
@@ -495,5 +495,5 @@ func TestShouldNotDeleteLabel(t *testing.T) {
 	}
 
 	assert.Nil(t, l.DeletedAt)
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

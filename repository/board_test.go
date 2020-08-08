@@ -179,7 +179,7 @@ func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyFindBoardWithoutRelatedModel(t *testing.T) {
@@ -253,7 +253,7 @@ func TestShouldNotFindBoardWithoutRelatedModel(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldCreateBoard(t *testing.T) {
@@ -486,7 +486,7 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }
 
 func TestShouldSuccessfullySearchBoard(t *testing.T) {

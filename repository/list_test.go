@@ -74,7 +74,7 @@ func TestShouldFailureValidateUIDOnListRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindList(t *testing.T) {
@@ -144,7 +144,7 @@ func TestShouldNotFindList(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateList(t *testing.T) {
@@ -434,5 +434,5 @@ func TestShouldNotDeleteList(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

@@ -149,7 +149,7 @@ func TestShouldNotSignInWhenEmailDoesNotExist(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "user does not exist")
+	assert.Equal(t, err[0].Text, ErrorUserDoesNotExist)
 }
 
 func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
@@ -179,7 +179,7 @@ func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid password")
+	assert.Equal(t, err[0].Text, ErrorInvalidPassword)
 }
 
 func TestIsSignedInShouldReturnTrueWhenTokenIsValid(t *testing.T) {
