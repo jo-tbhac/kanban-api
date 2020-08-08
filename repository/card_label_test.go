@@ -11,6 +11,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCardLabelRepository(t *testing.T) {
@@ -76,7 +77,7 @@ func TestShouldFailureValidateUIDOnCardLabelRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyCreateCardLabel(t *testing.T) {
@@ -142,7 +143,7 @@ func TestShouldNotCreateCardLabelWhenDuplicatePrimaryKey(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d-%d has already been taken", cardID, labelID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyFindCardLabel(t *testing.T) {
@@ -215,7 +216,7 @@ func TestShouldNotFindCardLabel(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyDeleteCardLabel(t *testing.T) {
@@ -281,5 +282,5 @@ func TestShouldNotDeleteCardLabel(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

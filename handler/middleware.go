@@ -45,7 +45,7 @@ func MapIDParamsToContext() gin.HandlerFunc {
 				log.Printf("fail to cast string to int: %v", err)
 				c.AbortWithStatusJSON(
 					http.StatusBadRequest,
-					gin.H{"errors": validator.NewValidationErrors(fmt.Sprintf("%s must be an integer", p.Key))})
+					gin.H{"errors": validator.NewValidationErrors(fmt.Sprintf("%s"+ErrorMustBeAnInteger, p.Key))})
 				return
 			}
 

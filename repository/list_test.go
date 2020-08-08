@@ -13,6 +13,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnListRepository(t *testing.T) {
@@ -74,7 +75,7 @@ func TestShouldFailureValidateUIDOnListRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindList(t *testing.T) {
@@ -144,7 +145,7 @@ func TestShouldNotFindList(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateList(t *testing.T) {
@@ -213,12 +214,12 @@ func TestShouldNotCreateList(t *testing.T) {
 			testName:      "when without a name",
 			listName:      "",
 			boardID:       uint(1),
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("リスト名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			listName:      strings.Repeat("a", 51),
 			boardID:       uint(1),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("リスト名", "50"),
 		},
 	}
 
@@ -295,11 +296,11 @@ func TestShouldNotUpdateList(t *testing.T) {
 		{
 			testName:      "when without a name",
 			listName:      "",
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("リスト名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			listName:      strings.Repeat("a", 51),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("リスト名", "50"),
 		},
 	}
 
@@ -434,5 +435,5 @@ func TestShouldNotDeleteList(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

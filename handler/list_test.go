@@ -109,7 +109,7 @@ func TestShouldFailureCreateListHandlerWhenWithoutName(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Name must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("リスト名"))
 }
 
 func TestUpdateListShouldReturnsStatusOKWithListData(t *testing.T) {
@@ -201,7 +201,7 @@ func TestShouldFailureUpdateListHandlerWhenWithoutName(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Name must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("リスト名"))
 }
 
 func TestUpdateListIndexShouldReturnsStatusOK(t *testing.T) {
@@ -310,5 +310,5 @@ func TestDeleteListHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid request")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorInvalidRequest)
 }

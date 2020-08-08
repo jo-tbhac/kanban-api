@@ -13,6 +13,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyFindBoard(t *testing.T) {
@@ -179,7 +180,7 @@ func TestShouldNotFindBoardWhenUserIdIsInvalid(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyFindBoardWithoutRelatedModel(t *testing.T) {
@@ -253,7 +254,7 @@ func TestShouldNotFindBoardWithoutRelatedModel(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldCreateBoard(t *testing.T) {
@@ -306,12 +307,12 @@ func TestShouldNotCreateBoard(t *testing.T) {
 			testName:      "when without a name",
 			boardName:     "",
 			userID:        uint(1),
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("ボード名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			boardName:     strings.Repeat("a", 51),
 			userID:        uint(1),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("ボード名", "50"),
 		},
 	}
 
@@ -387,11 +388,11 @@ func TestShouldNotUpdateBoard(t *testing.T) {
 		{
 			testName:      "when without a name",
 			boardName:     "",
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("ボード名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			boardName:     strings.Repeat("a", 51),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("ボード名", "50"),
 		},
 	}
 
@@ -486,7 +487,7 @@ func TestShouldNotDeleteBoard(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }
 
 func TestShouldSuccessfullySearchBoard(t *testing.T) {

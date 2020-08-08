@@ -39,7 +39,7 @@ func (r *CardRepository) ValidateUID(lid, uid uint) []validator.ValidationError 
 		Where("boards.user_id = ?", uid).
 		First(&b).
 		RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -55,7 +55,7 @@ func (r *CardRepository) Find(id, uid uint) (*entity.Card, []validator.Validatio
 		First(&c, id)
 
 	if rslt.RecordNotFound() {
-		return &c, validator.NewValidationErrors("invalid parameters")
+		return &c, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &c, nil
@@ -137,7 +137,7 @@ func (r *CardRepository) UpdateIndex(params []struct {
 func (r *CardRepository) Delete(c *entity.Card) []validator.ValidationError {
 	if rslt := r.db.Model(c).UpdateColumns(map[string]interface{}{"deleted_at": time.Now(), "index": 0}); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete card: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

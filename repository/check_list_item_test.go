@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCheckListItemRepository(t *testing.T) {
@@ -78,7 +79,7 @@ func TestShouldFailureValidateUIDOnCheckListItemRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindCheckListItem(t *testing.T) {
@@ -152,7 +153,7 @@ func TestShouldNotFindCheckListItem(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateCheckListItem(t *testing.T) {
@@ -205,12 +206,12 @@ func TestShouldNotCreateCheckListItem(t *testing.T) {
 			testName:      "when without a title",
 			name:          "",
 			checkListID:   uint(1),
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("アイテム名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			name:          strings.Repeat("w", 51),
 			checkListID:   uint(1),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("アイテム名", "50"),
 		},
 	}
 
@@ -289,12 +290,12 @@ func TestShouldNotUpdateCheckListItemName(t *testing.T) {
 			testName:      "when without a title",
 			name:          "",
 			checkListID:   uint(1),
-			expectedError: "Name must exist",
+			expectedError: validator.ErrorRequired("アイテム名"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			name:          strings.Repeat("w", 51),
 			checkListID:   uint(1),
-			expectedError: "Name is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("アイテム名", "50"),
 		},
 	}
 
@@ -426,5 +427,5 @@ func TestShouldNotDeleteCheckListItem(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

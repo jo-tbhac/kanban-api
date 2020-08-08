@@ -34,7 +34,7 @@ func (r *LabelRepository) ValidateUID(id, uid uint) []validator.ValidationError 
 	var b entity.Board
 
 	if r.db.Select("user_id").Where("user_id = ?", uid).First(&b, id).RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -49,7 +49,7 @@ func (r *LabelRepository) Find(id, uid uint) (*entity.Label, []validator.Validat
 		First(&l, id)
 
 	if rslt.RecordNotFound() {
-		return &l, validator.NewValidationErrors("invalid parameters")
+		return &l, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &l, nil
@@ -84,7 +84,7 @@ func (r *LabelRepository) Update(l *entity.Label, name, color string) []validato
 func (r *LabelRepository) Delete(l *entity.Label) []validator.ValidationError {
 	if rslt := r.db.Delete(l); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete label: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

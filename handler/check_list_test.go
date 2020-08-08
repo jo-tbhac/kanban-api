@@ -114,7 +114,7 @@ func TestShouldFailureCreateCheckListHandlerWhenRecievedInvalidParameter(t *test
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Title must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("チェックリスト名"))
 }
 
 func TestUpdateCheckListHandlerShouldReturnsStatusOK(t *testing.T) {
@@ -201,7 +201,7 @@ func TestShouldFailureUpdateCheckListHandlerWhenRecievedInvalidParameter(t *test
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Title must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("チェックリスト名"))
 }
 
 func TestDeleteCheckListHandlerShouldReturnsStatusOK(t *testing.T) {
@@ -276,7 +276,7 @@ func TestDeleteCheckListHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid request")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorInvalidRequest)
 }
 
 func TestIndexCheckListHandlerShouldReturnsStatusOKWithCheckListData(t *testing.T) {

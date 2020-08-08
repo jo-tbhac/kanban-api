@@ -33,7 +33,7 @@ func (h CardHandler) CreateCard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -72,7 +72,7 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h CardHandler) UpdateCard(c *gin.Context) {
 			return
 		}
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h CardHandler) UpdateCardIndex(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&ps); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h CardHandler) SearchCard(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindQuery(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 

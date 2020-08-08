@@ -36,7 +36,7 @@ func (r *CheckListItemRepository) ValidateUID(cid, uid uint) []validator.Validat
 		Where("boards.user_id = ?", uid).
 		First(&b).
 		RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (r *CheckListItemRepository) Find(id, uid uint) (*entity.CheckListItem, []v
 		Where("boards.user_id = ?", uid).
 		First(&item, id).
 		RecordNotFound() {
-		return &item, validator.NewValidationErrors("invalid parameters")
+		return &item, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &item, nil
@@ -95,7 +95,7 @@ func (r *CheckListItemRepository) Check(item *entity.CheckListItem, check bool) 
 func (r *CheckListItemRepository) Delete(item *entity.CheckListItem) []validator.ValidationError {
 	if rslt := r.db.Delete(item); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete check_list: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

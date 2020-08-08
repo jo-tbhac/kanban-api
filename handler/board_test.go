@@ -109,7 +109,7 @@ func TestShouldFailureCreateBoardHandlerWhenWithoutBoardName(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Name must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("ボード名"))
 }
 
 func TestUpdateBoardHandlerShouldReturnsStatusOKWithBoardData(t *testing.T) {
@@ -173,7 +173,7 @@ func TestShouldFailureUpdateBoardHandler(t *testing.T) {
 		{
 			testName:       "when with invalid query parameter",
 			expectedStatus: 400,
-			expectedError:  "boardID must be an integer",
+			expectedError:  fmt.Sprintf("%s"+ErrorMustBeAnInteger, "boardID"),
 			queryParameter: "eee",
 			boardRequestBody: boardRequestBody{
 				Name: "sample board",
@@ -181,7 +181,7 @@ func TestShouldFailureUpdateBoardHandler(t *testing.T) {
 		}, {
 			testName:       "when without name",
 			expectedStatus: 400,
-			expectedError:  "Name must exist",
+			expectedError:  validator.ErrorRequired("ボード名"),
 			queryParameter: "1",
 			boardRequestBody: boardRequestBody{
 				Name: "",
@@ -334,7 +334,7 @@ func TestShowBoardHandlerShouldReturnsStatusBadRequestWhenRecordNotFound(t *test
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid parameters")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorRecordNotFound)
 }
 
 func TestDeleteBoardHandlerShouldReturnsStatusOK(t *testing.T) {
@@ -401,7 +401,7 @@ func TestDeleteBoardHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid request")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorInvalidRequest)
 }
 
 func TestSearchBoardHandlerShouldReturnsStatusOKWithBoardIDs(t *testing.T) {

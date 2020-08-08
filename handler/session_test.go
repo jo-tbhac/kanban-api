@@ -87,7 +87,7 @@ func TestShouldFailureCreateSessionHandler(t *testing.T) {
 		{
 			testName:       "when without an email",
 			expectedStatus: 400,
-			expectedError:  "Email must exist",
+			expectedError:  validator.ErrorRequired("メールアドレス"),
 			sessionRequestBody: sessionRequestBody{
 				Email:    "",
 				Password: "12345678",
@@ -95,7 +95,7 @@ func TestShouldFailureCreateSessionHandler(t *testing.T) {
 		}, {
 			testName:       "when without a password",
 			expectedStatus: 400,
-			expectedError:  "Password must exist",
+			expectedError:  validator.ErrorRequired("パスワード"),
 			sessionRequestBody: sessionRequestBody{
 				Email:    "gopher@sample.com",
 				Password: "",

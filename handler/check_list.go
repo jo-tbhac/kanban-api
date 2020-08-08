@@ -31,7 +31,7 @@ func (h CheckListHandler) CreateCheckList(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h CheckListHandler) UpdateCheckList(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 

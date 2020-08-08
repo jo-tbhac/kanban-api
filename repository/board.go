@@ -42,7 +42,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 		First(&b, id)
 
 	if rslt.RecordNotFound() {
-		return &b, validator.NewValidationErrors("invalid parameters")
+		return &b, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &b, nil
@@ -53,7 +53,7 @@ func (r *BoardRepository) FindWithoutPreload(id, uid uint) (*entity.Board, []val
 	var b entity.Board
 
 	if r.db.Scopes(selectBoardColumn).Where("user_id = ?", uid).First(&b, id).RecordNotFound() {
-		return &b, validator.NewValidationErrors("invalid parameters")
+		return &b, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &b, nil
@@ -86,7 +86,7 @@ func (r *BoardRepository) Update(b *entity.Board, name string) []validator.Valid
 // use soft delete.
 func (r *BoardRepository) Delete(id, uid uint) []validator.ValidationError {
 	if rslt := r.db.Where("id = ? AND user_id = ?", id, uid).Delete(&entity.Board{}).RowsAffected; rslt == 0 {
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

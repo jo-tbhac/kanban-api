@@ -34,7 +34,7 @@ func (r *CardLabelRepository) ValidateUID(lid, cid, uid uint) []validator.Valida
 		Where("boards.user_id = ?", uid).
 		Find(&b).
 		RecordNotFound() {
-		return validator.NewValidationErrors("invalid parameters")
+		return validator.NewValidationErrors(ErrorInvalidSession)
 	}
 
 	return nil
@@ -68,7 +68,7 @@ func (r *CardLabelRepository) Find(lid, cid, uid uint) (*entity.CardLabel, []val
 		Where("card_labels.card_id = ?", cid).
 		First(&cl).
 		RecordNotFound() {
-		return &cl, validator.NewValidationErrors("invalid parameters")
+		return &cl, validator.NewValidationErrors(ErrorRecordNotFound)
 	}
 
 	return &cl, nil
@@ -78,7 +78,7 @@ func (r *CardLabelRepository) Find(lid, cid, uid uint) (*entity.CardLabel, []val
 func (r *CardLabelRepository) Delete(cl *entity.CardLabel) []validator.ValidationError {
 	if rslt := r.db.Delete(cl); rslt.RowsAffected == 0 {
 		log.Printf("fail to delete card_label: %v", rslt.Error)
-		return validator.NewValidationErrors("invalid request")
+		return validator.NewValidationErrors(ErrorInvalidRequest)
 	}
 
 	return nil

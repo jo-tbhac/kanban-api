@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCoverRepository(t *testing.T) {
@@ -71,7 +72,7 @@ func TestShouldFailureValidateUIDOnCoverRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyCreateCover(t *testing.T) {
@@ -138,7 +139,7 @@ func TestShoulNotCreateCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d has already been taken", cardID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyFindCover(t *testing.T) {
@@ -210,7 +211,7 @@ func TestShouldNotFindCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyUpdateCover(t *testing.T) {
@@ -284,7 +285,7 @@ func TestShouldFailureUpdateCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%d has already been taken", c.CardID))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullyDeleteCover(t *testing.T) {
@@ -350,5 +351,5 @@ func TestShouldFailureDeleteCover(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }

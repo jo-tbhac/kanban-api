@@ -111,7 +111,7 @@ func TestShouldFailureCreateCardHandlerWhenWithoutTitle(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "Title must exist")
+	assert.Equal(t, res["errors"][0].Text, validator.ErrorRequired("カードタイトル"))
 }
 
 func TestUpdateCardHandlerShouldReturnsStatusOK(t *testing.T) {
@@ -206,7 +206,7 @@ func TestShouldFailureUpdateCardHandler(t *testing.T) {
 			testName:       "when without a title",
 			attribute:      "title",
 			expectedStatus: 400,
-			expectedError:  "Title must exist",
+			expectedError:  validator.ErrorRequired("カードタイトル"),
 			cardRequestBody: cardRequestBody{
 				Title: "",
 			},
@@ -214,7 +214,7 @@ func TestShouldFailureUpdateCardHandler(t *testing.T) {
 			testName:        "when with invalid query parameter",
 			attribute:       "dfsdfhsksg",
 			expectedStatus:  400,
-			expectedError:   "invalid parameters",
+			expectedError:   ErrorInvalidParameter,
 			cardRequestBody: cardRequestBody{},
 		},
 	}
@@ -377,7 +377,7 @@ func TestDeleteCardHandlerShouldReturnsStatusBadRequest(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid request")
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorInvalidRequest)
 }
 
 func TestSearchCardHandlerShouldReturnsStatusOKWithCardData(t *testing.T) {

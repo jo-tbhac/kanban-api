@@ -32,7 +32,7 @@ func (h BoardHandler) CreateBoard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h BoardHandler) UpdateBoard(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("fail to bind JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h BoardHandler) SearchBoard(c *gin.Context) {
 
 	if err := c.ShouldBindQuery(&p); err != nil {
 		log.Printf("fail to bind query: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid parameters")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 

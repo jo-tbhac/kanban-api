@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyCreateUser(t *testing.T) {
@@ -81,7 +82,7 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 		t.Error("was not expected an error, but did not recieve it")
 	}
 
-	assert.Equal(t, err[0].Text, fmt.Sprintf("%s has already been taken", email))
+	assert.Equal(t, err[0].Text, validator.ErrorAlreadyBeenTaken)
 }
 
 func TestShouldSuccessfullySignIn(t *testing.T) {
@@ -149,7 +150,7 @@ func TestShouldNotSignInWhenEmailDoesNotExist(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "user does not exist")
+	assert.Equal(t, err[0].Text, ErrorUserDoesNotExist)
 }
 
 func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
@@ -179,7 +180,7 @@ func TestShouldNotSignInWhenPasswordIsInvalid(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid password")
+	assert.Equal(t, err[0].Text, ErrorInvalidPassword)
 }
 
 func TestIsSignedInShouldReturnTrueWhenTokenIsValid(t *testing.T) {

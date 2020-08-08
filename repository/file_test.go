@@ -75,7 +75,7 @@ func TestShouldFailureValidateUIDOnFileRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyCreateFile(t *testing.T) {
@@ -181,7 +181,7 @@ func TestShouldNotFindFile(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyDeleteFile(t *testing.T) {
@@ -241,7 +241,7 @@ func TestShouldNotDeleteFile(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }
 
 func TestShouldSuccessfullyGetAllFiles(t *testing.T) {

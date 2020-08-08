@@ -13,6 +13,7 @@ import (
 
 	"local.packages/entity"
 	"local.packages/utils"
+	"local.packages/validator"
 )
 
 func TestShouldSuccessfullyValidateUIDOnCardRepository(t *testing.T) {
@@ -76,7 +77,7 @@ func TestShouldFailureValidateUIDOnCardRepository(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorInvalidSession)
 }
 
 func TestShouldSuccessfullyFindCard(t *testing.T) {
@@ -153,7 +154,7 @@ func TestShouldNotFindCard(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid parameters")
+	assert.Equal(t, err[0].Text, ErrorRecordNotFound)
 }
 
 func TestShouldSuccessfullyCreateCard(t *testing.T) {
@@ -222,12 +223,12 @@ func TestShouldNotCreateCard(t *testing.T) {
 			testName:      "when without a title",
 			title:         "",
 			listID:        uint(1),
-			expectedError: "Title must exist",
+			expectedError: validator.ErrorRequired("カードタイトル"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			title:         strings.Repeat("w", 51),
 			listID:        uint(1),
-			expectedError: "Title is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("カードタイトル", "50"),
 		},
 	}
 
@@ -318,11 +319,11 @@ func TestShouldNotUpdateCardTitle(t *testing.T) {
 		{
 			testName:      "when without a title",
 			title:         "",
-			expectedError: "Title must exist",
+			expectedError: validator.ErrorRequired("カードタイトル"),
 		}, {
 			testName:      "when name size more than 50 characters",
 			title:         strings.Repeat("w", 51),
-			expectedError: "Title is too long (maximum is 50 characters)",
+			expectedError: validator.ErrorTooLong("カードタイトル", "50"),
 		},
 	}
 
@@ -521,7 +522,7 @@ func TestShouldNotDeleteCard(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %v", err)
 	}
 
-	assert.Equal(t, err[0].Text, "invalid request")
+	assert.Equal(t, err[0].Text, ErrorInvalidRequest)
 }
 
 func TestShouldSuccessfullySearchCard(t *testing.T) {
