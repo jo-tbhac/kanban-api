@@ -30,7 +30,7 @@ func (h FileHandler) UploadFile(c *gin.Context) {
 
 	if fh.Size > maxFileSize {
 		log.Println("file size over 8MiB")
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("file size over 8MiB")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorOverMaxFileSize)})
 		return
 	}
 
@@ -45,7 +45,7 @@ func (h FileHandler) UploadFile(c *gin.Context) {
 	f := h.repository.Upload(fh, cid)
 
 	if f == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors("invalid request")})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.NewValidationErrors(ErrorInvalidParameter)})
 		return
 	}
 

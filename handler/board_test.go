@@ -334,7 +334,7 @@ func TestShowBoardHandlerShouldReturnsStatusBadRequestWhenRecordNotFound(t *test
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid parameters")
+	assert.Equal(t, res["errors"][0].Text, ErrorInvalidParameter)
 }
 
 func TestDeleteBoardHandlerShouldReturnsStatusOK(t *testing.T) {

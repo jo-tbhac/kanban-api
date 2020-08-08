@@ -105,7 +105,7 @@ func TestShouldFailureCreateCardLabelHandlerWhenWithoutLabeID(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, "invalid parameters")
+	assert.Equal(t, res["errors"][0].Text, ErrorInvalidParameter)
 }
 
 func TestDeleteCardLabelHandlerShouldReturnsStatusOK(t *testing.T) {

@@ -112,5 +112,5 @@ func TestShouldReturnsStatusBadRequestWhenRequestParamKeyDoesNotContainsSuffixID
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Contains(t, res["errors"][0].Text, "must be an integer")
+	assert.Contains(t, res["errors"][0].Text, ErrorMustBeAnInteger)
 }
