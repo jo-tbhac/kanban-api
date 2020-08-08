@@ -214,7 +214,7 @@ func TestShouldFailureUpdateCardHandler(t *testing.T) {
 			testName:        "when with invalid query parameter",
 			attribute:       "dfsdfhsksg",
 			expectedStatus:  400,
-			expectedError:   "invalid parameters",
+			expectedError:   ErrorInvalidParameter,
 			cardRequestBody: cardRequestBody{},
 		},
 	}

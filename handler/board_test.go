@@ -173,7 +173,7 @@ func TestShouldFailureUpdateBoardHandler(t *testing.T) {
 		{
 			testName:       "when with invalid query parameter",
 			expectedStatus: 400,
-			expectedError:  "boardID must be an integer",
+			expectedError:  fmt.Sprintf("%s"+ErrorMustBeAnInteger, "boardID"),
 			queryParameter: "eee",
 			boardRequestBody: boardRequestBody{
 				Name: "sample board",
@@ -334,7 +334,7 @@ func TestShowBoardHandlerShouldReturnsStatusBadRequestWhenRecordNotFound(t *test
 	}
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, res["errors"][0].Text, ErrorInvalidParameter)
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorRecordNotFound)
 }
 
 func TestDeleteBoardHandlerShouldReturnsStatusOK(t *testing.T) {
