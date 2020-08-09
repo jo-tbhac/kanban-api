@@ -11,5 +11,6 @@ type User struct {
 	Email          string    `json:"email" gorm:"unique;not null"`
 	PasswordDigest string    `json:"password_digest" gorm:"not null"`
 	RememberToken  string    `json:"remember_token" gorm:"not null"`
+	ExpiresAt      time.Time `json:"-" gorm:"not null"`
 	Boards         []Board   `json:"boards" gorm:"foreignkey:UserID"`
 }

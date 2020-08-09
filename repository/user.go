@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"log"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
@@ -59,7 +60,9 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
 	}
 
-	r.db.Model(u).Select("remember_token").Updates(map[string]interface{}{"remember_token": t})
+	expire := time.Now().Add(time.Hour * 2)
+
+	r.db.Model(u).Updates(map[string]interface{}{"remember_token": t, "expires_at": expire})
 
 	return u, nil
 }
