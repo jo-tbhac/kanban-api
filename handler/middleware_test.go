@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
@@ -23,9 +24,10 @@ func TestShouldSetUserIDToContextUponSuccessfullyAuthenticate(t *testing.T) {
 	defer db.Close()
 
 	userID := uint(1)
+	expire := time.Now().Add(time.Hour * 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userID))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "expires_at"}).AddRow(userID, expire))
 
 	w := httptest.NewRecorder()
 	gin.SetMode(gin.TestMode)
