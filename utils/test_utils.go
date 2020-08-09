@@ -52,15 +52,17 @@ func SetUpRouter() *gin.Engine {
 // and add an expectation of authenticate user.
 func SetUpAuthentication(r *gin.Engine, req *http.Request, mock sqlmock.Sqlmock, middleware ...gin.HandlerFunc) {
 	token := "sampletoken"
-	req.Header.Add("Authorization", token)
+	req.Header.Add("X-Auth-Token", token)
 
 	for _, m := range middleware {
 		r.Use(m)
 	}
 
+	expire := time.Now().Add(time.Hour * 1)
+
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
 		WithArgs(token).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "expires_at"}).AddRow(uint(1), expire))
 }
 
 // ReplaceQuotationForQuery replace the single quotation with the back quotation.
