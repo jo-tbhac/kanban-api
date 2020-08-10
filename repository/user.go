@@ -53,16 +53,23 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 		return u, validator.NewValidationErrors(ErrorInvalidPassword)
 	}
 
-	t, err := newSessionToken()
+	at, err := newSessionToken()
 
 	if err != nil {
-		log.Printf("fail to create token: %v", err)
+		log.Printf("fail to create access token: %v", err)
+		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
+	}
+
+	rt, err := newSessionToken()
+
+	if err != nil {
+		log.Printf("fail to create refresh token: %v", err)
 		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
 	}
 
 	expire := time.Now().Add(time.Hour * 2)
 
-	r.db.Model(u).Updates(map[string]interface{}{"remember_token": t, "expires_at": expire})
+	r.db.Model(u).Updates(map[string]interface{}{"remember_token": at, "refresh_token": rt, "expires_at": expire})
 
 	return u, nil
 }

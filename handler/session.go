@@ -14,7 +14,7 @@ type sessionParams struct {
 }
 
 // CreateSession call a function that authenticate by request params.
-// returns a session token if authentication was valid.
+// returns access token and refresh token if authentication was valid.
 func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
@@ -30,5 +30,14 @@ func (h UserHandler) CreateSession(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": u.RememberToken})
+	d := time.Until(u.ExpiresAt)
+
+	c.JSON(
+		http.StatusOK,
+		gin.H{
+			"access_token":  u.RememberToken,
+			"refresh_token": u.RefreshToken,
+			"expires_in":    d.Milliseconds,
+		},
+	)
 }
