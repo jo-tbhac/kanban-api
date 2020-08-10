@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 
+	"local.packages/entity"
 	"local.packages/utils"
 	"local.packages/validator"
 )
@@ -28,12 +30,12 @@ func TestShouldSuccessfullyCreateUser(t *testing.T) {
 	expiresAt := utils.AnyTime{}
 
 	query := utils.ReplaceQuotationForQuery(`
-		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','expires_at')
-		VALUES (?,?,?,?,?,?,?)`)
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','refresh_token','expires_at')
+		VALUES (?,?,?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(createdAt, updatedAt, name, email, password, "", expiresAt).
+		WithArgs(createdAt, updatedAt, name, email, password, "", "", expiresAt).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -64,12 +66,12 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 	expiresAt := utils.AnyTime{}
 
 	query := utils.ReplaceQuotationForQuery(`
-		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','expires_at')
-		VALUES (?,?,?,?,?,?,?)`)
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','refresh_token','expires_at')
+		VALUES (?,?,?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(createdAt, updatedAt, name, email, password, "", expiresAt).
+		WithArgs(createdAt, updatedAt, name, email, password, "", "", expiresAt).
 		WillReturnError(fmt.Errorf("Error 1062: Duplicate entry '%s' for key 'email'", email))
 
 	mock.ExpectRollback()
@@ -99,7 +101,7 @@ func TestShouldSuccessfullySignIn(t *testing.T) {
 	passwordDigest, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	findQuery := "SELECT * FROM `users` WHERE (email = ?) ORDER BY `users`.`id` ASC LIMIT 1"
-	updateQuery := "UPDATE `users` SET `expires_at` = ?, `remember_token` = ?, `updated_at` = ? WHERE `users`.`id` = ?"
+	updateQuery := "UPDATE `users` SET `expires_at` = ?, `refresh_token` = ?, `remember_token` = ?, `updated_at` = ? WHERE `users`.`id` = ?"
 
 	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(email).
@@ -145,7 +147,7 @@ func TestShouldNotSignInWhenEmailDoesNotExist(t *testing.T) {
 	_, err := r.SignIn(email, password)
 
 	if err == nil {
-		t.Error("was not expected an error, but did not recieve it")
+		t.Error("was expected an error, but did not recieve it")
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -231,4 +233,127 @@ func TestIsSignedInShouldReturnFalseWhenTokenIsInvalid(t *testing.T) {
 	}
 
 	assert.False(t, ok)
+}
+
+func TestShouldSuccessfullyValidateToken(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	accessToken := "dsfjsefsefljfsf"
+	refreshToken := "eskljfnaejfauh"
+	userID := uint(1)
+
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT * FROM 'users'
+		WHERE (remember_token = ?) AND (refresh_token = ?)
+		ORDER BY 'users'.'id' ASC
+		LIMIT 1`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WithArgs(accessToken, refreshToken).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "remember_token", "refresh_token"}).
+				AddRow(userID, accessToken, refreshToken))
+
+	u, ok := r.ValidateToken(accessToken, refreshToken)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, userID)
+	assert.Equal(t, u.RememberToken, accessToken)
+	assert.Equal(t, u.RefreshToken, refreshToken)
+}
+
+func TestShouldFailureValidateToken(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	accessToken := "dsfjsefsefljfsf"
+	refreshToken := "eskljfnaejfauh"
+
+	query := utils.ReplaceQuotationForQuery(`
+		SELECT * FROM 'users'
+		WHERE (remember_token = ?) AND (refresh_token = ?)
+		ORDER BY 'users'.'id' ASC
+		LIMIT 1`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(query)).
+		WithArgs(accessToken, refreshToken).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	_, ok := r.ValidateToken(accessToken, refreshToken)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.False(t, ok)
+}
+
+func TestShouldSuccessfullyUpdateUserSession(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	u := &entity.User{ID: uint(1)}
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?, 'updated_at' = ?
+		WHERE 'users'.'id' = ?`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	if err := r.UpdateUserSession(u); err != nil {
+		t.Errorf("was not expected an error. %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.NotNil(t, u.RememberToken)
+	assert.NotNil(t, u.RefreshToken)
+}
+
+func TestShouldFailureUpdateUserSession(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	u := &entity.User{ID: uint(1)}
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?, 'updated_at' = ?
+		WHERE 'users'.'id' = ?`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WillReturnError(errors.New("some error"))
+
+	err := r.UpdateUserSession(u)
+
+	if err == nil {
+		t.Errorf("was expected an error but did not recieved it.")
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, err[0].Text, ErrorAuthenticationFailed)
 }

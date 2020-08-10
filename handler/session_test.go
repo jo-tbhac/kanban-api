@@ -3,12 +3,14 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 
@@ -20,6 +22,10 @@ import (
 type sessionRequestBody struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type tokenRequestBody struct {
+	RefreshToken string `json:"refresh_token"`
 }
 
 func TestShouldReturnsStatusOKWithSessionTokenUponUserSignIn(t *testing.T) {
@@ -65,14 +71,16 @@ func TestShouldReturnsStatusOKWithSessionTokenUponUserSignIn(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	res := map[string]string{}
+	res := map[string]interface{}{}
 
 	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
 		t.Fatalf("fail to unmarshal response body. %v", err)
 	}
 
 	assert.Equal(t, w.Code, 200)
-	assert.NotNil(t, res["token"])
+	assert.NotNil(t, res["access_token"])
+	assert.NotNil(t, res["refresh_token"])
+	assert.NotNil(t, res["expires_in"])
 }
 
 func TestShouldFailureCreateSessionHandler(t *testing.T) {
@@ -134,4 +142,185 @@ func TestShouldFailureCreateSessionHandler(t *testing.T) {
 			assert.Equal(t, res["errors"][0].Text, tc.expectedError)
 		})
 	}
+}
+
+func TestShouldReturnsStatusOKWithNewSessionPayload(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	h := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+	r.PATCH("/session", h.UpdateSession)
+
+	accessToken := "ercmewaorijno"
+	refreshToken := "oirjnoinoiaec"
+
+	findQuery := utils.ReplaceQuotationForQuery(`
+		SELECT * FROM 'users'
+		WHERE (remember_token = ?) AND (refresh_token = ?)
+		ORDER BY 'users'.'id' ASC
+		LIMIT 1`)
+
+	updateQuery := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?, 'updated_at' = ?
+		WHERE 'users'.'id' = ?`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
+		WithArgs(accessToken, refreshToken).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	b, err := json.Marshal(tokenRequestBody{
+		RefreshToken: refreshToken,
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/session", bytes.NewReader(b))
+
+	req.Header.Add("X-Auth-Token", accessToken)
+
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string]interface{}{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["ok"], true)
+	assert.NotNil(t, res["access_token"])
+	assert.NotNil(t, res["refresh_token"])
+	assert.NotNil(t, res["expires_in"])
+}
+
+func TestShouldReturnsStatusOKWithoutNewSessionPayloadWhenTokenIsInvalid(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	h := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+	r.PATCH("/session", h.UpdateSession)
+
+	accessToken := "ercmewaorijno"
+	refreshToken := "oirjnoinoiaec"
+
+	findQuery := utils.ReplaceQuotationForQuery(`
+		SELECT * FROM 'users'
+		WHERE (remember_token = ?) AND (refresh_token = ?)
+		ORDER BY 'users'.'id' ASC
+		LIMIT 1`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
+		WithArgs(accessToken, refreshToken).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	b, err := json.Marshal(tokenRequestBody{
+		RefreshToken: refreshToken,
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/session", bytes.NewReader(b))
+
+	req.Header.Add("X-Auth-Token", accessToken)
+
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string]interface{}{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["ok"], false)
+	assert.Nil(t, res["access_token"])
+	assert.Nil(t, res["refresh_token"])
+	assert.Nil(t, res["expires_in"])
+}
+
+func TestShouldReturnsStatusBadRequestWhenFailedUpdateUser(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	h := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+	r.PATCH("/session", h.UpdateSession)
+
+	accessToken := "ercmewaorijno"
+	refreshToken := "oirjnoinoiaec"
+
+	findQuery := utils.ReplaceQuotationForQuery(`
+		SELECT * FROM 'users'
+		WHERE (remember_token = ?) AND (refresh_token = ?)
+		ORDER BY 'users'.'id' ASC
+		LIMIT 1`)
+
+	updateQuery := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?, 'updated_at' = ?
+		WHERE 'users'.'id' = ?`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
+		WithArgs(accessToken, refreshToken).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
+		WillReturnError(errors.New("some error"))
+
+	mock.ExpectRollback()
+
+	b, err := json.Marshal(tokenRequestBody{
+		RefreshToken: refreshToken,
+	})
+
+	if err != nil {
+		t.Fatalf("fail to marshal json: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPatch, "/session", bytes.NewReader(b))
+
+	req.Header.Add("X-Auth-Token", accessToken)
+
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]validator.ValidationError{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 400)
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorAuthenticationFailed)
 }
