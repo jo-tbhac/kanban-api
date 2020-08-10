@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"local.packages/repository"
+	"local.packages/utils"
 	"local.packages/validator"
 )
 
@@ -58,5 +59,12 @@ func (h UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"token": u.RememberToken})
+	c.JSON(
+		http.StatusCreated,
+		gin.H{
+			"access_token":  u.RememberToken,
+			"refresh_token": u.RefreshToken,
+			"expires_in":    utils.CalcExpiresIn(u.ExpiresAt),
+		},
+	)
 }
