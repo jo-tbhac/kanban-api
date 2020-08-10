@@ -28,12 +28,12 @@ func TestShouldSuccessfullyCreateUser(t *testing.T) {
 	expiresAt := utils.AnyTime{}
 
 	query := utils.ReplaceQuotationForQuery(`
-		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','expires_at')
-		VALUES (?,?,?,?,?,?,?)`)
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','refresh_token','expires_at')
+		VALUES (?,?,?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(createdAt, updatedAt, name, email, password, "", expiresAt).
+		WithArgs(createdAt, updatedAt, name, email, password, "", "", expiresAt).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -64,12 +64,12 @@ func TestShouldNotCreateUserWhenDuplicateEmail(t *testing.T) {
 	expiresAt := utils.AnyTime{}
 
 	query := utils.ReplaceQuotationForQuery(`
-		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','expires_at')
-		VALUES (?,?,?,?,?,?,?)`)
+		INSERT INTO 'users' ('created_at','updated_at','name','email','password_digest','remember_token','refresh_token','expires_at')
+		VALUES (?,?,?,?,?,?,?,?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(createdAt, updatedAt, name, email, password, "", expiresAt).
+		WithArgs(createdAt, updatedAt, name, email, password, "", "", expiresAt).
 		WillReturnError(fmt.Errorf("Error 1062: Duplicate entry '%s' for key 'email'", email))
 
 	mock.ExpectRollback()
@@ -99,7 +99,7 @@ func TestShouldSuccessfullySignIn(t *testing.T) {
 	passwordDigest, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	findQuery := "SELECT * FROM `users` WHERE (email = ?) ORDER BY `users`.`id` ASC LIMIT 1"
-	updateQuery := "UPDATE `users` SET `expires_at` = ?, `remember_token` = ?, `updated_at` = ? WHERE `users`.`id` = ?"
+	updateQuery := "UPDATE `users` SET `expires_at` = ?, `refresh_token` = ?, `remember_token` = ?, `updated_at` = ? WHERE `users`.`id` = ?"
 
 	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(email).

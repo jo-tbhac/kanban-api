@@ -65,14 +65,16 @@ func TestShouldReturnsStatusOKWithSessionTokenUponUserSignIn(t *testing.T) {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	res := map[string]string{}
+	res := map[string]interface{}{}
 
 	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
 		t.Fatalf("fail to unmarshal response body. %v", err)
 	}
 
 	assert.Equal(t, w.Code, 200)
-	assert.NotNil(t, res["token"])
+	assert.NotNil(t, res["access_token"])
+	assert.NotNil(t, res["refresh_token"])
+	assert.NotNil(t, res["expires_in"])
 }
 
 func TestShouldFailureCreateSessionHandler(t *testing.T) {

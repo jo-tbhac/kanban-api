@@ -78,7 +78,9 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	}
 
 	assert.Equal(t, w.Code, 201)
-	assert.NotNil(t, res["token"])
+	assert.NotNil(t, res["access_token"])
+	assert.NotNil(t, res["refresh_token"])
+	assert.NotNil(t, res["expires_in"])
 }
 
 func TestShouldFailureCreateUserHandler(t *testing.T) {
