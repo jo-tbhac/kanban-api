@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"local.packages/utils"
 	"local.packages/validator"
 )
 
@@ -14,7 +15,7 @@ type sessionParams struct {
 }
 
 // CreateSession call a function that authenticate by request params.
-// returns access token and refresh token if authentication was valid.
+// returns access token, refresh token and expires if authentication was valid.
 func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
@@ -30,14 +31,49 @@ func (h UserHandler) CreateSession(c *gin.Context) {
 		return
 	}
 
-	d := time.Until(u.ExpiresAt)
-
 	c.JSON(
 		http.StatusOK,
 		gin.H{
 			"access_token":  u.RememberToken,
 			"refresh_token": u.RefreshToken,
-			"expires_in":    d.Milliseconds,
+			"expires_in":    utils.CalcExpiresIn(u.ExpiresAt),
+		},
+	)
+}
+
+// UpdateSession call a function that update access token and refresh token.
+// returns access token, refresh token and expires if authentication was valid.
+func (h UserHandler) UpdateSession(c *gin.Context) {
+	at := c.Request.Header.Get("X-Auth-Token")
+
+	p := struct {
+		RefreshToken string `json:"refresh_token"`
+	}{}
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
+		return
+	}
+
+	u, ok := h.repository.ValidateToken(at, p.RefreshToken)
+
+	if !ok {
+		c.JSON(http.StatusOK, gin.H{"ok": false})
+		return
+	}
+
+	if err := h.repository.UpdateUserSession(u); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.JSON(
+		http.StatusOK,
+		gin.H{
+			"ok":            true,
+			"access_token":  u.RememberToken,
+			"refresh_token": u.RefreshToken,
+			"expires_in":    utils.CalcExpiresIn(u.ExpiresAt),
 		},
 	)
 }

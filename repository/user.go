@@ -40,6 +40,32 @@ func (r *UserRepository) Create(name, email, password string) (*entity.User, []v
 	return u, nil
 }
 
+// UpdateUserSession updates access token, refresh token and expires.
+func (r *UserRepository) UpdateUserSession(u *entity.User) []validator.ValidationError {
+	at, err := newSessionToken()
+
+	if err != nil {
+		log.Printf("fail to create access token: %v", err)
+		return validator.NewValidationErrors(ErrorAuthenticationFailed)
+	}
+
+	rt, err := newSessionToken()
+
+	if err != nil {
+		log.Printf("fail to create refresh token: %v", err)
+		return validator.NewValidationErrors(ErrorAuthenticationFailed)
+	}
+
+	expire := time.Now().Add(time.Hour * 1)
+
+	if err := r.db.Model(u).Updates(map[string]interface{}{"remember_token": at, "refresh_token": rt, "expires_at": expire}).Error; err != nil {
+		log.Printf("fail to update user session: %v", err)
+		return validator.NewValidationErrors(ErrorAuthenticationFailed)
+	}
+
+	return nil
+}
+
 // SignIn returns instance of User that contain a new session token.
 // returns errors with message if an email or password is invalid.
 func (r *UserRepository) SignIn(email, password string) (*entity.User, []validator.ValidationError) {
@@ -53,23 +79,9 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 		return u, validator.NewValidationErrors(ErrorInvalidPassword)
 	}
 
-	at, err := newSessionToken()
-
-	if err != nil {
-		log.Printf("fail to create access token: %v", err)
-		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
+	if err := r.UpdateUserSession(u); err != nil {
+		return u, err
 	}
-
-	rt, err := newSessionToken()
-
-	if err != nil {
-		log.Printf("fail to create refresh token: %v", err)
-		return u, validator.NewValidationErrors(ErrorAuthenticationFailed)
-	}
-
-	expire := time.Now().Add(time.Hour * 2)
-
-	r.db.Model(u).Updates(map[string]interface{}{"remember_token": at, "refresh_token": rt, "expires_at": expire})
 
 	return u, nil
 }
@@ -80,6 +92,18 @@ func (r *UserRepository) IsSignedIn(token string) (*entity.User, bool) {
 	u := &entity.User{}
 
 	if r.db.Where("remember_token = ?", token).First(u).RecordNotFound() {
+		return u, false
+	}
+
+	return u, true
+}
+
+// ValidateToken returns an instance of User that found by access token and refresh token.
+// returns `false` if the record not found.
+func (r *UserRepository) ValidateToken(at, rt string) (*entity.User, bool) {
+	u := &entity.User{}
+
+	if r.db.Where("remember_token = ?", at).Where("refresh_token = ?", rt).First(u).RecordNotFound() {
 		return u, false
 	}
 

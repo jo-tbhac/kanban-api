@@ -60,6 +60,7 @@ func startServer() {
 
 	r.POST("/user", userHandler.CreateUser)
 	r.POST("/session", userHandler.CreateSession)
+	r.PATCH("/session", userHandler.UpdateSession)
 
 	authorized.POST("/board", boardHandler.CreateBoard)
 	authorized.GET("/boards", boardHandler.IndexBoard)
