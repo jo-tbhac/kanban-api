@@ -357,3 +357,65 @@ func TestShouldFailureUpdateUserSession(t *testing.T) {
 
 	assert.Equal(t, err[0].Text, ErrorAuthenticationFailed)
 }
+
+func TestShouldSuccessfullySignOut(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	userID := uint(1)
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'refresh_token' = ?, 'remember_token' = ?
+		WHERE (id = ?)`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(nil, nil, userID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	if err := r.SignOut(userID); err != nil {
+		t.Errorf("was not expected an error. %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+}
+
+func TestShouldFailureSignOut(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewUserRepository(db)
+
+	userID := uint(1)
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'refresh_token' = ?, 'remember_token' = ?
+		WHERE (id = ?)`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(nil, nil, userID).
+		WillReturnError(errors.New("some error"))
+
+	mock.ExpectRollback()
+
+	err := r.SignOut(userID)
+
+	if err == nil {
+		t.Errorf("was expected an error but did not recieved it.")
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, err[0].Text, ErrorAuthenticationFailed)
+}
