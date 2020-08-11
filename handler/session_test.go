@@ -54,7 +54,7 @@ func TestShouldReturnsStatusOKWithSessionTokenUponUserSignIn(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
 		WithArgs(email).
 		WillReturnRows(
-			sqlmock.NewRows([]string{"id", "password_digest"}).AddRow(uint(1), passwordDigest))
+			sqlmock.NewRows([]string{"id", "email", "password_digest"}).AddRow(uint(1), email, passwordDigest))
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET")).
@@ -78,6 +78,7 @@ func TestShouldReturnsStatusOKWithSessionTokenUponUserSignIn(t *testing.T) {
 	}
 
 	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, res["email"], email)
 	assert.NotNil(t, res["access_token"])
 	assert.NotNil(t, res["refresh_token"])
 	assert.NotNil(t, res["expires_in"])
@@ -153,6 +154,7 @@ func TestShouldReturnsStatusOKWithNewSessionPayload(t *testing.T) {
 	r := utils.SetUpRouter()
 	r.PATCH("/session", h.UpdateSession)
 
+	email := "gopher@sample.com"
 	accessToken := "ercmewaorijno"
 	refreshToken := "oirjnoinoiaec"
 
@@ -169,7 +171,7 @@ func TestShouldReturnsStatusOKWithNewSessionPayload(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
 		WithArgs(accessToken, refreshToken).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "email"}).AddRow(uint(1), email))
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
@@ -204,6 +206,7 @@ func TestShouldReturnsStatusOKWithNewSessionPayload(t *testing.T) {
 
 	assert.Equal(t, w.Code, 200)
 	assert.Equal(t, res["ok"], true)
+	assert.Equal(t, res["email"], email)
 	assert.NotNil(t, res["access_token"])
 	assert.NotNil(t, res["refresh_token"])
 	assert.NotNil(t, res["expires_in"])
