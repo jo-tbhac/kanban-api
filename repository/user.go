@@ -86,6 +86,16 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 	return u, nil
 }
 
+// SignOut delete remember token and refresh token.
+func (r *UserRepository) SignOut(uid uint) []validator.ValidationError {
+	if err := r.db.Table("users").Where("id = ?", uid).Updates(map[string]interface{}{"remember_token": nil, "refresh_token": nil}).Error; err != nil {
+		log.Printf("fail to delete session: %v", err)
+		return validator.NewValidationErrors(ErrorAuthenticationFailed)
+	}
+
+	return nil
+}
+
 // IsSignedIn returns an instance of User that found by session token.
 // returns `false` if the record not found.
 func (r *UserRepository) IsSignedIn(token string) (*entity.User, bool) {

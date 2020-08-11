@@ -77,3 +77,13 @@ func (h UserHandler) UpdateSession(c *gin.Context) {
 		},
 	)
 }
+
+// DeleteSession call a function that delete access token and refresh token.
+func (h UserHandler) DeleteSession(c *gin.Context) {
+	if err := h.repository.SignOut(currentUserID(c)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
