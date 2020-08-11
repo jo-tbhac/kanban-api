@@ -324,3 +324,80 @@ func TestShouldReturnsStatusBadRequestWhenFailedUpdateUser(t *testing.T) {
 	assert.Equal(t, w.Code, 400)
 	assert.Equal(t, res["errors"][0].Text, repository.ErrorAuthenticationFailed)
 }
+
+func TestShouldReturnStatusOKWhenSucceedDeleteSession(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	h := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, "/session", nil)
+
+	utils.SetUpAuthentication(r, req, mock, h.Authenticate(), MapIDParamsToContext())
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'refresh_token' = ?, 'remember_token' = ?
+		WHERE (id = ?)`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(nil, nil, uint(1)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	r.DELETE("/session", h.DeleteSession)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, w.Code, 200)
+}
+
+func TestShouldReturnStatusBadRequestWhenFailedDeleteSession(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	h := NewUserHandler(repository.NewUserRepository(db))
+
+	r := utils.SetUpRouter()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, "/session", nil)
+
+	utils.SetUpAuthentication(r, req, mock, h.Authenticate(), MapIDParamsToContext())
+
+	query := utils.ReplaceQuotationForQuery(`
+		UPDATE 'users'
+		SET 'refresh_token' = ?, 'remember_token' = ?
+		WHERE (id = ?)`)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(query)).
+		WithArgs(nil, nil, uint(1)).
+		WillReturnError(errors.New("some error"))
+
+	mock.ExpectRollback()
+
+	r.DELETE("/session", h.DeleteSession)
+	r.ServeHTTP(w, req)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	res := map[string][]validator.ValidationError{}
+
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("fail to unmarshal response body. %v", err)
+	}
+
+	assert.Equal(t, w.Code, 400)
+	assert.Equal(t, res["errors"][0].Text, repository.ErrorAuthenticationFailed)
+}
