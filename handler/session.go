@@ -35,6 +35,7 @@ func (h UserHandler) CreateSession(c *gin.Context) {
 		http.StatusOK,
 		gin.H{
 			"email":         u.Email,
+			"name":          u.Name,
 			"access_token":  u.RememberToken,
 			"refresh_token": u.RefreshToken,
 			"expires_in":    utils.CalcExpiresIn(u.ExpiresAt),
@@ -72,6 +73,7 @@ func (h UserHandler) UpdateSession(c *gin.Context) {
 		http.StatusOK,
 		gin.H{
 			"ok":            true,
+			"name":          u.Name,
 			"email":         u.Email,
 			"access_token":  u.RememberToken,
 			"refresh_token": u.RefreshToken,
