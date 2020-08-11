@@ -33,10 +33,11 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	r := utils.SetUpRouter()
 	r.POST("/user", h.CreateUser)
 
+	name := "gopher"
 	email := "gopher@sample.com"
 
 	b, err := json.Marshal(userRequestBody{
-		Name:                 "gopher",
+		Name:                 name,
 		Email:                email,
 		Password:             "12345678",
 		PasswordConfirmation: "12345678",
@@ -56,7 +57,8 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
 		WithArgs("gopher@sample.com").
 		WillReturnRows(
-			sqlmock.NewRows([]string{"id", "email", "password_digest"}).AddRow(uint(1), "gopher@sample.com", passwordDigest))
+			sqlmock.NewRows([]string{"id", "name", "email", "password_digest"}).
+				AddRow(uint(1), name, email, passwordDigest))
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET")).
@@ -80,6 +82,7 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	}
 
 	assert.Equal(t, w.Code, 201)
+	assert.Equal(t, res["name"], name)
 	assert.Equal(t, res["email"], email)
 	assert.NotNil(t, res["access_token"])
 	assert.NotNil(t, res["refresh_token"])
