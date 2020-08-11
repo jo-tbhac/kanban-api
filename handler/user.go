@@ -62,6 +62,7 @@ func (h UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(
 		http.StatusCreated,
 		gin.H{
+			"email":         u.Email,
 			"access_token":  u.RememberToken,
 			"refresh_token": u.RefreshToken,
 			"expires_in":    utils.CalcExpiresIn(u.ExpiresAt),

@@ -33,9 +33,11 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	r := utils.SetUpRouter()
 	r.POST("/user", h.CreateUser)
 
+	email := "gopher@sample.com"
+
 	b, err := json.Marshal(userRequestBody{
 		Name:                 "gopher",
-		Email:                "gopher@sample.com",
+		Email:                email,
 		Password:             "12345678",
 		PasswordConfirmation: "12345678",
 	})
@@ -78,6 +80,7 @@ func TestShouldReturnsStatusCreatedWithSessionTokenUponUserSignUp(t *testing.T) 
 	}
 
 	assert.Equal(t, w.Code, 201)
+	assert.Equal(t, res["email"], email)
 	assert.NotNil(t, res["access_token"])
 	assert.NotNil(t, res["refresh_token"])
 	assert.NotNil(t, res["expires_in"])
