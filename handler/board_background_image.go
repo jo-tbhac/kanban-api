@@ -20,26 +20,26 @@ func NewBoardBackgroundImageHandler(r *repository.BoardBackgroundImageRepository
 	}
 }
 
-// CreateBoardBackgroundImage call a function that create a new record to board_background_images table.
-// if creation was successful, returns status 201 and instance of BoardBackgroundImage as http response.
+// UpdateBoardBackgroundImage call a function that update a record for board_background_images table.
+// if creation was successful, returns status 200 as http response.
 // if creation was failure, returns status 400 and error with messages.
-func (h BoardBackgroundImageHandler) CreateBoardBackgroundImage(c *gin.Context) {
+func (h BoardBackgroundImageHandler) UpdateBoardBackgroundImage(c *gin.Context) {
 	bid := getIDParam(c, "boardID")
 	iid := getIDParam(c, "backgroundImageID")
 
-	if err := h.repository.ValidateUID(bid, currentUserID(c)); err != nil {
+	b, err := h.repository.Find(bid, currentUserID(c))
+
+	if err != nil {
 		log.Println("uid does not match board.user_id and current user")
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	b, err := h.repository.Create(bid, iid)
-
-	if err != nil {
-		log.Printf("failed insert record to board_background_image table: %v", err)
+	if err := h.repository.Update(b, iid); err != nil {
+		log.Printf("failed update for board_background_image tables record: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"board_background_image": b})
+	c.Status(http.StatusOK)
 }

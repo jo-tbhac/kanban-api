@@ -112,7 +112,7 @@ func startServer() {
 
 	authorized.GET("/background_images", backgroundImageHandler.IndexBackgroundImage)
 
-	authorized.POST("/board/:boardID/background_image/:backgroundImageID", boardBackgroundImageHandler.CreateBoardBackgroundImage)
+	authorized.PATCH("/board/:boardID/background_image/:backgroundImageID", boardBackgroundImageHandler.UpdateBoardBackgroundImage)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

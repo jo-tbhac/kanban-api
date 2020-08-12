@@ -18,27 +18,26 @@ func NewBoardBackgroundImageRepository(db *gorm.DB) *BoardBackgroundImageReposit
 	}
 }
 
-// ValidateUID validates whether a boardID received as args was created by the login user.
-func (r *BoardBackgroundImageRepository) ValidateUID(id, uid uint) []validator.ValidationError {
-	var b entity.Board
+// Find returns a record of BoardBackgroundImage that found by id.
+func (r *BoardBackgroundImageRepository) Find(id, uid uint) (*entity.BoardBackgroundImage, []validator.ValidationError) {
+	var b entity.BoardBackgroundImage
 
-	if r.db.Select("user_id").Where("user_id = ?", uid).First(&b, id).RecordNotFound() {
-		return validator.NewValidationErrors(ErrorInvalidSession)
+	if r.db.Joins("Join boards ON board_background_images.board_id = boards.id").
+		Where("boards.user_id = ?", uid).
+		Where("boards.id = ?", id).
+		First(&b).
+		RecordNotFound() {
+		return &b, validator.NewValidationErrors(ErrorInvalidSession)
+	}
+
+	return &b, nil
+}
+
+// Update update a record's background_image_id in a board_background_images table
+func (r *BoardBackgroundImageRepository) Update(b *entity.BoardBackgroundImage, newID uint) []validator.ValidationError {
+	if err := r.db.Model(b).Update("background_image_id", newID).Error; err != nil {
+		return validator.FormattedMySQLError(err)
 	}
 
 	return nil
-}
-
-// Create insert a new record to a board_background_images table.
-func (r *BoardBackgroundImageRepository) Create(bid, iid uint) (*entity.BoardBackgroundImage, []validator.ValidationError) {
-	b := &entity.BoardBackgroundImage{
-		BoardID:           bid,
-		BackgroundImageID: iid,
-	}
-
-	if err := r.db.Create(b).Error; err != nil {
-		return b, validator.FormattedMySQLError(err)
-	}
-
-	return b, nil
 }
