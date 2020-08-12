@@ -14,16 +14,17 @@ import (
 )
 
 var (
-	userHandler          *handler.UserHandler
-	boardHandler         *handler.BoardHandler
-	labelHandler         *handler.LabelHandler
-	listHandler          *handler.ListHandler
-	cardHandler          *handler.CardHandler
-	cardLabelHandler     *handler.CardLabelHandler
-	checkListHandler     *handler.CheckListHandler
-	checkListItemHandler *handler.CheckListItemHandler
-	fileHandler          *handler.FileHandler
-	coverHandler         *handler.CoverHandler
+	userHandler            *handler.UserHandler
+	boardHandler           *handler.BoardHandler
+	labelHandler           *handler.LabelHandler
+	listHandler            *handler.ListHandler
+	cardHandler            *handler.CardHandler
+	cardLabelHandler       *handler.CardLabelHandler
+	checkListHandler       *handler.CheckListHandler
+	checkListItemHandler   *handler.CheckListItemHandler
+	fileHandler            *handler.FileHandler
+	coverHandler           *handler.CoverHandler
+	backgroundImageHandler *handler.BackgroundImageHandler
 )
 
 func main() {
@@ -44,6 +45,7 @@ func main() {
 	checkListItemHandler = handler.NewCheckListItemHandler(repository.NewCheckListItemRepository(db))
 	fileHandler = handler.NewFileHandler(repository.NewFileRepository(db))
 	coverHandler = handler.NewCoverHandler(repository.NewCoverRepository(db))
+	backgroundImageHandler = handler.NewBackgroundImageHandler(repository.NewBackgroundImageRepository(db))
 
 	migration.Migrate()
 	startServer()
@@ -105,6 +107,8 @@ func startServer() {
 	authorized.POST("/card/:cardID/cover/:fileID", coverHandler.CreateCover)
 	authorized.PATCH("/cover", coverHandler.UpdateCover)
 	authorized.DELETE("/card/:cardID/cover", coverHandler.DeleteCover)
+
+	authorized.GET("/background_images", backgroundImageHandler.IndexBackgroundImage)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }

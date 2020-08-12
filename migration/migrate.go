@@ -20,6 +20,8 @@ func Migrate() {
 		&entity.CheckListItem{},
 		&entity.File{},
 		&entity.Cover{},
+		&entity.BackgroundImage{},
+		&entity.BoardBackgroundImage{},
 	)
 
 	db.Model(&entity.Board{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
@@ -34,4 +36,6 @@ func Migrate() {
 	db.Model(&entity.File{}).AddForeignKey("card_id", "cards(id)", "CASCADE", "RESTRICT")
 	db.Model(&entity.Cover{}).AddForeignKey("card_id", "cards(id)", "CASCADE", "RESTRICT")
 	db.Model(&entity.Cover{}).AddForeignKey("file_id", "files(id)", "CASCADE", "RESTRICT")
+	db.Model(&entity.BoardBackgroundImage{}).AddForeignKey("board_id", "boards(id)", "CASCADE", "RESTRICT")
+	db.Model(&entity.BoardBackgroundImage{}).AddForeignKey("background_image_id", "background_images(id)", "CASCADE", "RESTRICT")
 }
