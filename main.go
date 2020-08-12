@@ -14,17 +14,18 @@ import (
 )
 
 var (
-	userHandler            *handler.UserHandler
-	boardHandler           *handler.BoardHandler
-	labelHandler           *handler.LabelHandler
-	listHandler            *handler.ListHandler
-	cardHandler            *handler.CardHandler
-	cardLabelHandler       *handler.CardLabelHandler
-	checkListHandler       *handler.CheckListHandler
-	checkListItemHandler   *handler.CheckListItemHandler
-	fileHandler            *handler.FileHandler
-	coverHandler           *handler.CoverHandler
-	backgroundImageHandler *handler.BackgroundImageHandler
+	userHandler                 *handler.UserHandler
+	boardHandler                *handler.BoardHandler
+	labelHandler                *handler.LabelHandler
+	listHandler                 *handler.ListHandler
+	cardHandler                 *handler.CardHandler
+	cardLabelHandler            *handler.CardLabelHandler
+	checkListHandler            *handler.CheckListHandler
+	checkListItemHandler        *handler.CheckListItemHandler
+	fileHandler                 *handler.FileHandler
+	coverHandler                *handler.CoverHandler
+	backgroundImageHandler      *handler.BackgroundImageHandler
+	boardBackgroundImageHandler *handler.BoardBackgroundImageHandler
 )
 
 func main() {
@@ -46,6 +47,7 @@ func main() {
 	fileHandler = handler.NewFileHandler(repository.NewFileRepository(db))
 	coverHandler = handler.NewCoverHandler(repository.NewCoverRepository(db))
 	backgroundImageHandler = handler.NewBackgroundImageHandler(repository.NewBackgroundImageRepository(db))
+	boardBackgroundImageHandler = handler.NewBoardBackgroundImageHandler(repository.NewBoardBackgroundImageRepository(db))
 
 	migration.Migrate()
 	startServer()
@@ -109,6 +111,8 @@ func startServer() {
 	authorized.DELETE("/card/:cardID/cover", coverHandler.DeleteCover)
 
 	authorized.GET("/background_images", backgroundImageHandler.IndexBackgroundImage)
+
+	authorized.POST("/board/:boardID/background_image/:backgroundImageID", boardBackgroundImageHandler.CreateBoardBackgroundImage)
 
 	r.Run(fmt.Sprintf(":%v", config.Config.Web.Port))
 }
