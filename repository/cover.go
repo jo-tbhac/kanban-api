@@ -54,7 +54,7 @@ func (r *CoverRepository) Find(cid, uid uint) (*entity.Cover, []validator.Valida
 	return &c, nil
 }
 
-// Create insert a new record to a card_labels table.
+// Create insert a new record to a covers table.
 func (r *CoverRepository) Create(cid, fid uint) (*entity.Cover, []validator.ValidationError) {
 	c := &entity.Cover{
 		CardID: cid,
