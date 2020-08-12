@@ -11,13 +11,12 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"local.packages/entity"
 	"local.packages/repository"
 	"local.packages/utils"
 	"local.packages/validator"
 )
 
-func TestShouldReturnStatusCreatedAsHTTPRepsponse(t *testing.T) {
+func TestShouldReturnStatusOKWhenSucceedUpdateBoardBackgroundImage(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
 
@@ -27,52 +26,52 @@ func TestShouldReturnStatusCreatedAsHTTPRepsponse(t *testing.T) {
 	r := utils.SetUpRouter()
 
 	boardID := uint(1)
-	backgroundImageID := uint(2)
+	previousBackgroundImageID := uint(2)
+	newBackgroundImageID := uint(3)
 
-	url := fmt.Sprintf("/board/%d/background_image/%d", boardID, backgroundImageID)
+	url := fmt.Sprintf("/board/%d/background_image/%d", boardID, newBackgroundImageID)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, url, nil)
+	req, _ := http.NewRequest(http.MethodPatch, url, nil)
 
 	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
 
 	findQuery := utils.ReplaceQuotationForQuery(`
-		SELECT user_id
-		FROM 'boards'
-		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?) AND ('boards'.'id' = %d))
-		ORDER BY 'boards'.'id' ASC LIMIT 1`)
+		SELECT 'board_background_images'.*
+		FROM 'board_background_images'
+		Join boards ON board_background_images.board_id = boards.id
+		WHERE (boards.user_id = ?) AND (boards.id = ?)
+		ORDER BY 'board_background_images'.'board_id' ASC
+		LIMIT 1`)
 
-	insertQuery := "INSERT INTO `board_background_images` (`board_id`,`background_image_id`) VALUES (?,?)"
+	updateQuery := utils.ReplaceQuotationForQuery(`
+		UPDATE 'board_background_images'
+		SET 'background_image_id' = ?
+		WHERE 'board_background_images'.'board_id' = ?`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(findQuery, boardID))).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(boardID))
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"board_id", "background_image_id"}).
+				AddRow(boardID, previousBackgroundImageID))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
-		WithArgs(boardID, backgroundImageID).
+	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
+		WithArgs(newBackgroundImageID, boardID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
 
-	r.POST("/board/:boardID/background_image/:backgroundImageID", bh.CreateBoardBackgroundImage)
+	r.PATCH("/board/:boardID/background_image/:backgroundImageID", bh.UpdateBoardBackgroundImage)
 	r.ServeHTTP(w, req)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
 
-	res := map[string]entity.BoardBackgroundImage{}
-
-	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
-		t.Fatalf("fail to unmarshal response body. %v", err)
-	}
-
-	assert.Equal(t, w.Code, 201)
-	assert.Equal(t, res["board_background_image"].BoardID, boardID)
-	assert.Equal(t, res["board_background_image"].BackgroundImageID, backgroundImageID)
+	assert.Equal(t, w.Code, 200)
 }
 
-func TestShouldReturnStatusBadRequestAsHTTPRepsponse(t *testing.T) {
+func TestShouldReturnStatusBadRequestWhenFailedUpdateBoardBackgroundImage(t *testing.T) {
 	db, mock := utils.NewDBMock(t)
 	defer db.Close()
 
@@ -82,34 +81,42 @@ func TestShouldReturnStatusBadRequestAsHTTPRepsponse(t *testing.T) {
 	r := utils.SetUpRouter()
 
 	boardID := uint(1)
-	backgroundImageID := uint(2)
+	previousBackgroundImageID := uint(2)
+	newBackgroundImageID := uint(3)
 
-	url := fmt.Sprintf("/board/%d/background_image/%d", boardID, backgroundImageID)
+	url := fmt.Sprintf("/board/%d/background_image/%d", boardID, newBackgroundImageID)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, url, nil)
+	req, _ := http.NewRequest(http.MethodPatch, url, nil)
 
 	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
 
 	findQuery := utils.ReplaceQuotationForQuery(`
-		SELECT user_id
-		FROM 'boards'
-		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?) AND ('boards'.'id' = %d))
-		ORDER BY 'boards'.'id' ASC LIMIT 1`)
+		SELECT 'board_background_images'.*
+		FROM 'board_background_images'
+		Join boards ON board_background_images.board_id = boards.id
+		WHERE (boards.user_id = ?) AND (boards.id = ?)
+		ORDER BY 'board_background_images'.'board_id' ASC
+		LIMIT 1`)
 
-	insertQuery := "INSERT INTO `board_background_images` (`board_id`,`background_image_id`) VALUES (?,?)"
+	updateQuery := utils.ReplaceQuotationForQuery(`
+		UPDATE 'board_background_images'
+		SET 'background_image_id' = ?
+		WHERE 'board_background_images'.'board_id' = ?`)
 
-	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(findQuery, boardID))).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(boardID))
+	mock.ExpectQuery(regexp.QuoteMeta(findQuery)).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"board_id", "background_image_id"}).
+				AddRow(boardID, previousBackgroundImageID))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
-		WithArgs(boardID, backgroundImageID).
+	mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
+		WithArgs(newBackgroundImageID, boardID).
 		WillReturnError(errors.New("Error 1062: Duplicate entry"))
 
 	mock.ExpectRollback()
 
-	r.POST("/board/:boardID/background_image/:backgroundImageID", bh.CreateBoardBackgroundImage)
+	r.PATCH("/board/:boardID/background_image/:backgroundImageID", bh.UpdateBoardBackgroundImage)
 	r.ServeHTTP(w, req)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
