@@ -30,9 +30,12 @@ func TestShouldReturnsBackgroundImageInstancesAndStatusOKAsHTTPResponse(t *testi
 
 	backgroundImageID := uint(1)
 	backgroundImageURL := "http://localhost/image"
+	backgroundImageTheme := "light"
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `background_images`")).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "url"}).AddRow(backgroundImageID, backgroundImageURL))
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "url", "theme"}).
+				AddRow(backgroundImageID, backgroundImageURL, backgroundImageTheme))
 
 	r.GET("/background_images", bh.IndexBackgroundImage)
 	r.ServeHTTP(w, req)
@@ -51,4 +54,5 @@ func TestShouldReturnsBackgroundImageInstancesAndStatusOKAsHTTPResponse(t *testi
 	assert.Len(t, res["background_images"], 1)
 	assert.Equal(t, res["background_images"][0].ID, backgroundImageID)
 	assert.Equal(t, res["background_images"][0].URL, backgroundImageURL)
+	assert.Equal(t, res["background_images"][0].Theme, backgroundImageTheme)
 }
