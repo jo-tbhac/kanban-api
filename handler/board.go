@@ -11,7 +11,8 @@ import (
 )
 
 type boardParams struct {
-	Name string `json:"name" form:"name"`
+	Name              string `json:"name" form:"name"`
+	BackgroundImageID uint   `json:"background_image_id"`
 }
 
 // BoardHandler ...
@@ -36,7 +37,7 @@ func (h BoardHandler) CreateBoard(c *gin.Context) {
 		return
 	}
 
-	b, err := h.repository.Create(p.Name, currentUserID(c))
+	b, err := h.repository.Create(p.Name, p.BackgroundImageID, currentUserID(c))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": err})

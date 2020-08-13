@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"reflect"
+
 	"github.com/jinzhu/gorm"
 
 	"local.packages/entity"
@@ -61,15 +63,39 @@ func (r *BoardRepository) FindWithoutPreload(id, uid uint) (*entity.Board, []val
 }
 
 // Create insert a new record to a boards table.
-func (r *BoardRepository) Create(name string, uid uint) (*entity.Board, []validator.ValidationError) {
+func (r *BoardRepository) Create(name string, iid, uid uint) (*entity.Board, []validator.ValidationError) {
 	b := &entity.Board{
 		Name:   name,
 		UserID: uid,
 	}
 
-	if err := r.db.Create(b).Error; err != nil {
+	i := &entity.BoardBackgroundImage{
+		BackgroundImageID: iid,
+	}
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(b).Error; err != nil {
+			return err
+		}
+
+		i.BoardID = b.ID
+
+		if err := tx.Create(i).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		t := reflect.TypeOf(err)
+
+		if t.String() == "*mysql.MySQLError" {
+			return b, validator.FormattedMySQLError(err)
+		}
 		return b, validator.FormattedValidationError(err)
 	}
+
+	b.BackgroundImage = i
 
 	return b, nil
 }
