@@ -31,6 +31,11 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		UserID:    userID,
 	}
 
+	mockBackgroundImage := entity.BoardBackgroundImage{
+		BoardID:           mockBoard.ID,
+		BackgroundImageID: uint(2),
+	}
+
 	mockList := entity.List{
 		ID:      uint(2),
 		Name:    "mockList",
@@ -69,6 +74,18 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "updated_at", "name", "user_id"}).
 				AddRow(mockBoard.ID, mockBoard.UpdatedAt, mockBoard.Name, userID))
+
+	backgroundImageQuery := utils.ReplaceQuotationForQuery(`
+		SELECT *
+		FROM 'board_background_images'
+		WHERE ('board_id' IN (?))
+		ORDER BY 'board_background_images'.'board_id' ASC`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(backgroundImageQuery)).
+		WithArgs(mockBackgroundImage.BoardID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"board_id", "background_image_id"}).
+				AddRow(mockBackgroundImage.BoardID, mockBackgroundImage.BackgroundImageID))
 
 	listQuery := utils.ReplaceQuotationForQuery(`
 		SELECT lists.id, lists.name, lists.board_id, lists.index
@@ -131,6 +148,9 @@ func TestShouldSuccessfullyFindBoard(t *testing.T) {
 	assert.Equal(t, b.Name, mockBoard.Name)
 	assert.Equal(t, b.UpdatedAt, mockBoard.UpdatedAt)
 	assert.Equal(t, b.UserID, mockBoard.UserID)
+
+	assert.Equal(t, b.BackgroundImage.BoardID, mockBackgroundImage.BoardID)
+	assert.Equal(t, b.BackgroundImage.BackgroundImageID, mockBackgroundImage.BackgroundImageID)
 
 	assert.Equal(t, b.Lists[0].ID, mockList.ID)
 	assert.Equal(t, b.Lists[0].Name, mockList.Name)
@@ -518,4 +538,61 @@ func TestShouldSuccessfullySearchBoard(t *testing.T) {
 	for _, id := range ids {
 		assert.Equal(t, id, boardID)
 	}
+}
+
+func TestShouldReturnsAllBoardInstances(t *testing.T) {
+	db, mock := utils.NewDBMock(t)
+	defer db.Close()
+
+	r := NewBoardRepository(db)
+
+	userID := uint(5)
+
+	mockBoard := entity.Board{
+		ID:        uint(1),
+		UpdatedAt: time.Now(),
+		Name:      "mockBoard",
+		UserID:    userID,
+	}
+
+	mockBackgroundImage := entity.BoardBackgroundImage{
+		BoardID:           mockBoard.ID,
+		BackgroundImageID: uint(2),
+	}
+
+	boardQuery := utils.ReplaceQuotationForQuery(`
+		SELECT id, updated_at, name, user_id
+		FROM 'boards'
+		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?))`)
+
+	backgroundImageQuery := utils.ReplaceQuotationForQuery(`
+		SELECT *
+		FROM 'board_background_images'
+		WHERE ('board_id' IN (?))`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(boardQuery)).
+		WithArgs(userID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "updated_at", "name", "user_id"}).
+				AddRow(mockBoard.ID, mockBoard.UpdatedAt, mockBoard.Name, mockBoard.UserID))
+
+	mock.ExpectQuery(regexp.QuoteMeta(backgroundImageQuery)).
+		WithArgs(mockBackgroundImage.BoardID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"board_id", "background_image_id"}).
+				AddRow(mockBackgroundImage.BoardID, mockBackgroundImage.BackgroundImageID))
+
+	bs := r.GetAll(userID)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
+	}
+
+	assert.Equal(t, (*bs)[0].ID, mockBoard.ID)
+	assert.Equal(t, (*bs)[0].UpdatedAt, mockBoard.UpdatedAt)
+	assert.Equal(t, (*bs)[0].Name, mockBoard.Name)
+	assert.Equal(t, (*bs)[0].UserID, mockBoard.UserID)
+
+	assert.Equal(t, (*bs)[0].BackgroundImage.BoardID, mockBackgroundImage.BoardID)
+	assert.Equal(t, (*bs)[0].BackgroundImage.BackgroundImageID, mockBackgroundImage.BackgroundImageID)
 }
