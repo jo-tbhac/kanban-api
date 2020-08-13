@@ -287,19 +287,28 @@ func TestShouldCreateBoard(t *testing.T) {
 	updatedAt := utils.AnyTime{}
 	name := strings.Repeat("a", 50)
 	userID := uint(1)
+	backgroundImageID := uint(2)
 
-	query := utils.ReplaceQuotationForQuery(`
+	insertBoardQuery := utils.ReplaceQuotationForQuery(`
 		INSERT INTO 'boards' ('created_at','updated_at','deleted_at','name','user_id')
 		VALUES (?,?,?,?,?)`)
 
+	insertBackgroundImageQuery := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'board_background_images' ('board_id','background_image_id')
+		VALUES (?,?)`)
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(query)).
+	mock.ExpectExec(regexp.QuoteMeta(insertBoardQuery)).
 		WithArgs(createdAt, updatedAt, nil, name, userID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectExec(regexp.QuoteMeta(insertBackgroundImageQuery)).
+		WithArgs(1, backgroundImageID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
 
-	b, err := r.Create(name, userID)
+	b, err := r.Create(name, backgroundImageID, userID)
 
 	if err != nil {
 		t.Errorf("was not expected an error. %v", err)
@@ -312,6 +321,8 @@ func TestShouldCreateBoard(t *testing.T) {
 	assert.Equal(t, b.ID, uint(1))
 	assert.Equal(t, b.Name, name)
 	assert.Equal(t, b.UserID, userID)
+	assert.Equal(t, b.BackgroundImage.BoardID, uint(1))
+	assert.Equal(t, b.BackgroundImage.BackgroundImageID, backgroundImageID)
 }
 
 func TestShouldNotCreateBoard(t *testing.T) {
@@ -344,8 +355,11 @@ func TestShouldNotCreateBoard(t *testing.T) {
 			r := NewBoardRepository(db)
 
 			mock.ExpectBegin()
+			mock.ExpectRollback()
 
-			_, err := r.Create(tc.boardName, tc.userID)
+			backgroundImageID := uint(2)
+
+			_, err := r.Create(tc.boardName, backgroundImageID, tc.userID)
 
 			if err == nil {
 				t.Error("was expected an error, but did not recieve it.")
