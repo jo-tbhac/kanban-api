@@ -249,8 +249,36 @@ func TestIndexBoardHandlerShouldReturnsStatusOKWithBoardData(t *testing.T) {
 
 	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, updated_at, name, user_id FROM `boards`")).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(1)))
+	mockBoard := entity.Board{
+		ID:   uint(1),
+		Name: "mockBoard",
+	}
+
+	mockBackgroundImage := entity.BoardBackgroundImage{
+		BoardID:           mockBoard.ID,
+		BackgroundImageID: uint(2),
+	}
+
+	boardQuery := utils.ReplaceQuotationForQuery(`
+		SELECT id, updated_at, name, user_id
+		FROM 'boards'
+		WHERE 'boards'.'deleted_at' IS NULL AND ((user_id = ?))`)
+
+	backgroundImageQuery := utils.ReplaceQuotationForQuery(`
+		SELECT *
+		FROM 'board_background_images'
+		WHERE ('board_id' IN (?))`)
+
+	mock.ExpectQuery(regexp.QuoteMeta(boardQuery)).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name"}).
+				AddRow(mockBoard.ID, mockBoard.Name))
+
+	mock.ExpectQuery(regexp.QuoteMeta(backgroundImageQuery)).
+		WithArgs(mockBackgroundImage.BoardID).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"board_id", "background_image_id"}).
+				AddRow(mockBackgroundImage.BoardID, mockBackgroundImage.BackgroundImageID))
 
 	r.GET("/boards", bh.IndexBoard)
 	r.ServeHTTP(w, req)
@@ -267,6 +295,12 @@ func TestIndexBoardHandlerShouldReturnsStatusOKWithBoardData(t *testing.T) {
 
 	assert.Equal(t, w.Code, 200)
 	assert.Len(t, res["boards"], 1)
+
+	assert.Equal(t, res["boards"][0].ID, mockBoard.ID)
+	assert.Equal(t, res["boards"][0].Name, mockBoard.Name)
+
+	assert.Equal(t, res["boards"][0].BackgroundImage.BoardID, mockBackgroundImage.BoardID)
+	assert.Equal(t, res["boards"][0].BackgroundImage.BackgroundImageID, mockBackgroundImage.BackgroundImageID)
 }
 
 func TestShowBoardHandlerShouldReturnsStatusOKWithBoardData(t *testing.T) {
