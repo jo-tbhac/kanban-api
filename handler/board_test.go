@@ -20,7 +20,8 @@ import (
 )
 
 type boardRequestBody struct {
-	Name string `json:"name"`
+	Name              string `json:"name"`
+	BackgroundImageID uint   `json:"background_image_id"`
 }
 
 func TestCreateBoardHandlerShouldReturnsStatusCreatedWithBoardData(t *testing.T) {
@@ -33,9 +34,11 @@ func TestCreateBoardHandlerShouldReturnsStatusCreatedWithBoardData(t *testing.T)
 	r := utils.SetUpRouter()
 
 	name := "sample board"
+	backgroundImageID := uint(1)
 
 	b, err := json.Marshal(boardRequestBody{
-		Name: name,
+		Name:              name,
+		BackgroundImageID: backgroundImageID,
 	})
 
 	if err != nil {
@@ -47,8 +50,19 @@ func TestCreateBoardHandlerShouldReturnsStatusCreatedWithBoardData(t *testing.T)
 
 	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
 
+	insertBoardQuery := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'boards' ('created_at','updated_at','deleted_at','name','user_id')
+		VALUES (?,?,?,?,?)`)
+
+	insertBackgroundImageQuery := utils.ReplaceQuotationForQuery(`
+		INSERT INTO 'board_background_images' ('board_id','background_image_id')
+		VALUES (?,?)`)
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `boards` (`created_at`,`updated_at`,`deleted_at`,`name`,`user_id`)")).
+	mock.ExpectExec(regexp.QuoteMeta(insertBoardQuery)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectExec(regexp.QuoteMeta(insertBackgroundImageQuery)).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -69,6 +83,7 @@ func TestCreateBoardHandlerShouldReturnsStatusCreatedWithBoardData(t *testing.T)
 	assert.Equal(t, w.Code, 201)
 	assert.Equal(t, res["board"].Name, name)
 	assert.Equal(t, res["board"].ID, uint(1))
+	assert.Equal(t, res["board"].BackgroundImage.BackgroundImageID, backgroundImageID)
 }
 
 func TestShouldFailureCreateBoardHandlerWhenWithoutBoardName(t *testing.T) {
@@ -81,7 +96,8 @@ func TestShouldFailureCreateBoardHandlerWhenWithoutBoardName(t *testing.T) {
 	r := utils.SetUpRouter()
 
 	b, err := json.Marshal(boardRequestBody{
-		Name: "",
+		Name:              "",
+		BackgroundImageID: uint(1),
 	})
 
 	if err != nil {
@@ -94,6 +110,7 @@ func TestShouldFailureCreateBoardHandlerWhenWithoutBoardName(t *testing.T) {
 	utils.SetUpAuthentication(r, req, mock, uh.Authenticate(), MapIDParamsToContext())
 
 	mock.ExpectBegin()
+	mock.ExpectRollback()
 
 	r.POST("/board", bh.CreateBoard)
 	r.ServeHTTP(w, req)
