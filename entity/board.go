@@ -8,13 +8,14 @@ import (
 
 // Board is model of boards table.
 type Board struct {
-	ID        uint       `json:"id"`
-	CreatedAt time.Time  `json:"-" gorm:"not null"`
-	UpdatedAt time.Time  `json:"updated_at" gorm:"not null"`
-	DeletedAt *time.Time `json:"-"`
-	Name      string     `json:"name" validate:"required,max=50" gorm:"size:50;not null"`
-	UserID    uint       `json:"-" gorm:"not null"`
-	Lists     []List     `json:"lists"`
+	ID              uint                  `json:"id"`
+	CreatedAt       time.Time             `json:"-" gorm:"not null"`
+	UpdatedAt       time.Time             `json:"updated_at" gorm:"not null"`
+	DeletedAt       *time.Time            `json:"-"`
+	Name            string                `json:"name" validate:"required,max=50" gorm:"size:50;not null"`
+	UserID          uint                  `json:"-" gorm:"not null"`
+	Lists           []List                `json:"lists"`
+	BackgroundImage *BoardBackgroundImage `json:"background_image"`
 }
 
 // BeforeSave called before create/update a record of boards table.

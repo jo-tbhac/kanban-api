@@ -28,6 +28,7 @@ func (r *BoardRepository) Find(id, uid uint) (*entity.Board, []validator.Validat
 	var b entity.Board
 
 	rslt := r.db.Scopes(selectBoardColumn).
+		Preload("BackgroundImage").
 		Preload("Lists", func(db *gorm.DB) *gorm.DB {
 			return db.Scopes(selectListColumn).Order("lists.index asc")
 		}).
@@ -96,7 +97,7 @@ func (r *BoardRepository) Delete(id, uid uint) []validator.ValidationError {
 func (r *BoardRepository) GetAll(uid uint) *[]entity.Board {
 	var bs []entity.Board
 
-	r.db.Scopes(selectBoardColumn).Where("user_id = ?", uid).Find(&bs)
+	r.db.Scopes(selectBoardColumn).Preload("BackgroundImage").Where("user_id = ?", uid).Find(&bs)
 
 	return &bs
 }
