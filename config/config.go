@@ -17,7 +17,8 @@ type ConfigList struct {
 		Driver string
 	}
 	Web struct {
-		Port int
+		Port   int
+		Origin string
 	}
 }
 
