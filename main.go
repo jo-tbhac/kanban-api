@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -32,9 +31,7 @@ func main() {
 	db := db.Get()
 	defer db.Close()
 
-	if os.Getenv("GIN_MODE") == "debug" {
-		db.LogMode(true)
-	}
+	db.LogMode(config.Config.Database.Log)
 
 	userHandler = handler.NewUserHandler(repository.NewUserRepository(db))
 	boardHandler = handler.NewBoardHandler(repository.NewBoardRepository(db))
