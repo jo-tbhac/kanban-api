@@ -1,0 +1,13 @@
+aws:
+    bucket:
+    region:
+database:
+    user:
+    name:
+    host:
+    password:
+    driver:
+    log_mode:
+web:
+    port:
+    origin:

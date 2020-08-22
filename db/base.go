@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/jinzhu/gorm"
@@ -15,7 +16,14 @@ var (
 )
 
 func init() {
-	db, err = gorm.Open(config.Config.Database.Driver, config.Config.Database.Name)
+	c := fmt.Sprintf(
+		"%s:%s@%s/%s?parseTime=True",
+		config.Config.Database.User,
+		config.Config.Database.Password,
+		config.Config.Database.Host,
+		config.Config.Database.Name)
+
+	db, err = gorm.Open(config.Config.Database.Driver, c)
 	if err != nil {
 		log.Fatalf("failed db connection: %v", err)
 	}
