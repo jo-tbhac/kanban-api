@@ -50,9 +50,9 @@ CREATE DATABASE <任意のデータベース名> DEFAULT CHARACTER SET utf8 COLL
 
 #### AccessKeyIDとSecretAccessKeyの取得
 
-セキュリティのために`AmazonS3FullAccess`のみアクセスが許可されたIAMユーザーを作成することを推奨します。
+セキュリティのために`AmazonS3FullAccess`のみアクセスが許可されたIAMユーザーを作成することを推奨します。（詳細については[こちら](https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/id_users_create.html)を参照してください）
 
-詳細については[こちら](https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/id_users_create.html)を参照してください。
+取得したAccessKeyIDとSecretAccessKeyは、環境変数もしくは共有資格情報ファイルに設定してください。（詳細については[こちら](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html)を参照してください）
 
 #### S3バケットの作成
 
