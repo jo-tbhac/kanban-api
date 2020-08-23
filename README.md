@@ -3,7 +3,7 @@
 カンバン方式のタスク管理アプリ **kanban** のAPIサーバーのリポジトリです。
 
 - アプリURL: https://k4nban.com
-- アプリ概要: ?
+- アプリ概要: https://github.com/jo-tbhac/kanban-readme
 - フロントエンドのリポジトリ: https://github.com/jo-tbhac/kanban
 
 ## 必要条件
