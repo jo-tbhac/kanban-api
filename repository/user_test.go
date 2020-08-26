@@ -368,12 +368,12 @@ func TestShouldSuccessfullySignOut(t *testing.T) {
 
 	query := utils.ReplaceQuotationForQuery(`
 		UPDATE 'users'
-		SET 'refresh_token' = ?, 'remember_token' = ?
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?
 		WHERE (id = ?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(nil, nil, userID).
+		WithArgs(nil, nil, nil, userID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	mock.ExpectCommit()
@@ -397,12 +397,12 @@ func TestShouldFailureSignOut(t *testing.T) {
 
 	query := utils.ReplaceQuotationForQuery(`
 		UPDATE 'users'
-		SET 'refresh_token' = ?, 'remember_token' = ?
+		SET 'expires_at' = ?, 'refresh_token' = ?, 'remember_token' = ?
 		WHERE (id = ?)`)
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).
-		WithArgs(nil, nil, userID).
+		WithArgs(nil, nil, nil, userID).
 		WillReturnError(errors.New("some error"))
 
 	mock.ExpectRollback()
