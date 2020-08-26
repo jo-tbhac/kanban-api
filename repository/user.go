@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"local.packages/entity"
+	"local.packages/utils"
 	"local.packages/validator"
 )
 
@@ -32,6 +33,39 @@ func (r *UserRepository) TestUsers() *[]entity.User {
 	r.db.Select("id, name, email, expires_at").Where("id IN (?)", []uint{2, 3, 4, 5}).Find(&us)
 
 	return &us
+}
+
+// IsExpire validate a session has not expired.
+func (r *UserRepository) IsExpire(email string) (bool, []validator.ValidationError) {
+	u := &entity.User{}
+
+	if r.db.Where("email = ?", email).First(u).RecordNotFound() {
+		return false, validator.NewValidationErrors(ErrorUserDoesNotExist)
+	}
+
+	if e := utils.CalcExpiresIn(u.ExpiresAt); e > 0 /*token is valid*/ {
+		return false, validator.NewValidationErrors(ErrorUnavailableTestUser)
+	}
+
+	return true, nil
+}
+
+// IsTester check if it is a test user.
+func (r *UserRepository) IsTester(email string) (bool, []validator.ValidationError) {
+	u := &entity.User{}
+
+	if r.db.Where("email = ?", email).First(u).RecordNotFound() {
+		return false, validator.NewValidationErrors(ErrorUserDoesNotExist)
+	}
+
+	ids := []uint{2, 3, 4, 5} // test user ids
+
+	for _, id := range ids {
+		if id == u.ID {
+			return true, validator.NewValidationErrors(ErrorInvalidRequest)
+		}
+	}
+	return false, nil
 }
 
 // Create insert a new record to users table.
@@ -97,7 +131,7 @@ func (r *UserRepository) SignIn(email, password string) (*entity.User, []validat
 
 // SignOut delete remember token and refresh token.
 func (r *UserRepository) SignOut(uid uint) []validator.ValidationError {
-	if err := r.db.Table("users").Where("id = ?", uid).Updates(map[string]interface{}{"remember_token": nil, "refresh_token": nil}).Error; err != nil {
+	if err := r.db.Table("users").Where("id = ?", uid).Updates(map[string]interface{}{"expires_at": nil, "remember_token": nil, "refresh_token": nil}).Error; err != nil {
 		log.Printf("fail to delete session: %v", err)
 		return validator.NewValidationErrors(ErrorAuthenticationFailed)
 	}
