@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 
 	"local.packages/utils"
 	"local.packages/validator"
@@ -19,7 +20,7 @@ type sessionParams struct {
 func (h UserHandler) CreateSession(c *gin.Context) {
 	var p sessionParams
 
-	if err := c.ShouldBindJSON(&p); err != nil {
+	if err := c.ShouldBindBodyWith(&p, binding.JSON); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
 		return
 	}

@@ -13,4 +13,6 @@ const (
 	ErrorAuthenticationFailed string = "認証中に問題が発生しました"
 	// ErrorInvalidRequest is invalid request error text.
 	ErrorInvalidRequest string = "リククエストが不正です"
+	// ErrorUnavailableTestUser is when test user is unavailable error text.
+	ErrorUnavailableTestUser string = "このテストユーザーは使用中です"
 )

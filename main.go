@@ -58,10 +58,15 @@ func startServer() {
 	r.Use(handler.CORSMiddleware())
 
 	authorized := r.Group("/", userHandler.Authenticate())
+	testerSignIn := r.Group("/", userHandler.TesterMiddleware())
+	rejectTesterSignIn := r.Group("/", userHandler.RejectTester())
 
 	r.GET("/testers", userHandler.IndexTestUsers)
+	testerSignIn.POST("/tester", userHandler.CreateSession)
+
 	r.POST("/user", userHandler.CreateUser)
-	r.POST("/session", userHandler.CreateSession)
+
+	rejectTesterSignIn.POST("/session", userHandler.CreateSession)
 	r.PATCH("/session", userHandler.UpdateSession)
 	authorized.DELETE("/session", userHandler.DeleteSession)
 

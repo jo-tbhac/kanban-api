@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 
 	"local.packages/config"
 	"local.packages/validator"
@@ -74,6 +75,46 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
+	}
+}
+
+// TesterMiddleware prevent duplicate sign in.
+func (h UserHandler) TesterMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		p := struct {
+			Email string `json:"email" binding:"required"`
+		}{}
+
+		if err := c.ShouldBindBodyWith(&p, binding.JSON); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
+			return
+		}
+
+		if ok, err := h.repository.IsExpire(p.Email); ok {
+			c.Next()
+		} else {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": err})
+		}
+	}
+}
+
+// RejectTester reject sign in by test user.
+func (h UserHandler) RejectTester() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		p := struct {
+			Email string `json:"email" binding:"required"`
+		}{}
+
+		if err := c.ShouldBindBodyWith(&p, binding.JSON); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": validator.FormattedValidationError(err)})
+			return
+		}
+
+		if _, err := h.repository.IsTester(p.Email); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": err})
 		} else {
 			c.Next()
 		}
