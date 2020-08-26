@@ -25,6 +25,15 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
+// TestUsers returns user instances for testing.
+func (r *UserRepository) TestUsers() *[]entity.User {
+	var us []entity.User
+
+	r.db.Select("id, email, expires_at").Where("id IN (?)", []uint{2, 3, 4, 5}).Find(&us)
+
+	return &us
+}
+
 // Create insert a new record to users table.
 func (r *UserRepository) Create(name, email, password string) (*entity.User, []validator.ValidationError) {
 	u := &entity.User{
