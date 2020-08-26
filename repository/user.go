@@ -29,7 +29,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 func (r *UserRepository) TestUsers() *[]entity.User {
 	var us []entity.User
 
-	r.db.Select("id, email, expires_at").Where("id IN (?)", []uint{2, 3, 4, 5}).Find(&us)
+	r.db.Select("id, name, email, expires_at").Where("id IN (?)", []uint{2, 3, 4, 5}).Find(&us)
 
 	return &us
 }

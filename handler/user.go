@@ -34,6 +34,7 @@ func (h UserHandler) IndexTestUsers(c *gin.Context) {
 
 	type response struct {
 		ID        uint   `json:"id"`
+		Name      string `json:"name"`
 		Email     string `json:"email"`
 		ExpiresIn int64  `json:"expires_in"`
 	}
@@ -43,6 +44,7 @@ func (h UserHandler) IndexTestUsers(c *gin.Context) {
 	for _, u := range *us {
 		r = append(r, response{
 			ID:        u.ID,
+			Name:      u.Name,
 			Email:     u.Email,
 			ExpiresIn: utils.CalcExpiresIn(u.ExpiresAt),
 		})
