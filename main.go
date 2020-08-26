@@ -59,6 +59,7 @@ func startServer() {
 
 	authorized := r.Group("/", userHandler.Authenticate())
 
+	r.GET("/testers", userHandler.IndexTestUsers)
 	r.POST("/user", userHandler.CreateUser)
 	r.POST("/session", userHandler.CreateSession)
 	r.PATCH("/session", userHandler.UpdateSession)

@@ -28,6 +28,29 @@ func NewUserHandler(r *repository.UserRepository) *UserHandler {
 	return &UserHandler{repository: r}
 }
 
+// IndexTestUsers returns slice of User instances for testing.
+func (h UserHandler) IndexTestUsers(c *gin.Context) {
+	us := h.repository.TestUsers()
+
+	type response struct {
+		ID        uint   `json:"id"`
+		Email     string `json:"email"`
+		ExpiresIn int64  `json:"expires_in"`
+	}
+
+	var r []response
+
+	for _, u := range *us {
+		r = append(r, response{
+			ID:        u.ID,
+			Email:     u.Email,
+			ExpiresIn: utils.CalcExpiresIn(u.ExpiresAt),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": r})
+}
+
 // CreateUser call function that create a new record to users table.
 // if creation was successful, returns status 201 and a session token as http response.
 // if creation was failure, returns status 400 and error with messages.
